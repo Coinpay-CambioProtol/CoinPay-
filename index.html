@@ -1,80 +1,124 @@
 <!DOCTYPE html>
-<html lang="pt-PT">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>COINPAY | TERMINAL PRO</title>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COINPAY | GATEWAY SYSTEM PRO</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root { --bg-base: #010208; --bg-panel: #0b0e14; --primary: #00ff88; --text-main: #ffffff; --border: #1f293d; }
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg-base); color: var(--text-main); font-family: -apple-system, sans-serif; display: flex; justify-content: center; min-height: 100vh; }
-        .app-container { width: 100%; max-width: 450px; background: var(--bg-panel); border-left: 1px solid var(--border); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
-        .header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .visor { padding: 40px 20px; text-align: right; background: #000; }
-        .amount { font-size: 3rem; font-weight: 800; color: var(--primary); font-family: monospace; }
-        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 20px; }
-        .key { padding: 25px 0; background: #161b22; border: 1px solid var(--border); color: white; border-radius: 12px; font-size: 1.5rem; cursor: pointer; }
-        .key:active { background: var(--primary); color: #000; }
-        .btn-main { padding: 20px; margin: 0 20px 20px 20px; background: var(--primary); border: none; border-radius: 12px; font-weight: 800; cursor: pointer; }
-        #modal-pay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
-        #qr-code { background: #fff; padding: 15px; border-radius: 10px; }
+        :root { --bg: #05070a; --panel: #10141d; --accent: #00ff88; --text: #ffffff; --danger: #ff4d4d; --border: rgba(255,255,255,0.1); }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; display: flex; justify-content: center; min-height: 100vh; }
+        .app-container { width: 100%; max-width: 450px; padding: 20px; }
+        
+        /* UI Components */
+        .card { background: var(--panel); border-radius: 20px; padding: 20px; border: 1px solid var(--border); margin-bottom: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .btn { width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: 800; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        .btn-primary { background: var(--accent); color: #000; }
+        .btn-secondary { background: var(--border); color: #fff; }
+        
+        #display { font-size: 3rem; font-weight: 800; text-align: right; color: var(--accent); }
+        .history-list { max-height: 200px; overflow-y: auto; font-size: 14px; }
+        .history-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
+        
+        #modal { display: none; position: fixed; inset: 0; background: rgba(5,7,10,0.95); z-index: 999; flex-direction: column; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <header class="header">
-        <div style="font-weight:900; font-size:18px;">COIN<span style="color:var(--primary)">PAY</span></div>
-        <button onclick="App.connect()" style="background:none; border:1px solid var(--primary); color:var(--primary); padding:8px 15px; border-radius:8px; cursor:pointer;">LIGAR</button>
-    </header>
-
-    <div class="visor"><div id="display" class="amount">R$ 0,00</div></div>
-    
-    <div class="keypad">
-        <button class="key" onclick="App.press('1')">1</button><button class="key" onclick="App.press('2')">2</button><button class="key" onclick="App.press('3')">3</button>
-        <button class="key" onclick="App.press('4')">4</button><button class="key" onclick="App.press('5')">5</button><button class="key" onclick="App.press('6')">6</button>
-        <button class="key" onclick="App.press('7')">7</button><button class="key" onclick="App.press('8')">8</button><button class="key" onclick="App.press('9')">9</button>
-        <button class="key" onclick="App.press('C')">C</button><button class="key" onclick="App.press('0')">0</button><button class="key" onclick="App.press('DEL')"><i class="fas fa-backspace"></i></button>
+    <div class="header">
+        <div style="font-weight:800; font-size:1.2rem;">COINPAY</div>
+        <button id="wallet-btn" onclick="Gateway.connect()" class="btn-secondary" style="padding:8px 15px; width:auto;">Conectar Wallet</button>
     </div>
-    
-    <button class="btn-main" onclick="App.pay()">GERAR PAGAMENTO</button>
 
-    <div id="modal-pay">
-        <div id="qr-code"></div>
-        <button onclick="document.getElementById('modal-pay').style.display='none'" style="margin-top:20px; padding:10px 30px; background:transparent; border:1px solid white; color:white; border-radius:8px;">FECHAR</button>
+    <div class="card">
+        <div id="display">R$ 0,00</div>
     </div>
+
+    <div class="card" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;">
+        <button class="btn btn-secondary" onclick="Gateway.add('1')">1</button>
+        <button class="btn btn-secondary" onclick="Gateway.add('2')">2</button>
+        <button class="btn btn-secondary" onclick="Gateway.add('3')">3</button>
+        <button class="btn btn-secondary" onclick="Gateway.add('4')">4</button>
+        <button class="btn btn-secondary" onclick="Gateway.add('5')">5</button>
+        <button class="btn btn-secondary" onclick="Gateway.add('6')">6</button>
+        <button class="btn btn-secondary" onclick="Gateway.add('7')">7</button>
+        <button class="btn btn-secondary" onclick="Gateway.add('8')">8</button>
+        <button class="btn btn-secondary" onclick="Gateway.add('9')">9</button>
+        <button class="btn btn-secondary" onclick="Gateway.add('C')">C</button>
+        <button class="btn btn-secondary" onclick="Gateway.add('0')">0</button>
+        <button class="btn btn-secondary" onclick="Gateway.add('DEL')"><i class="fas fa-backspace"></i></button>
+    </div>
+
+    <button class="btn btn-primary" onclick="Gateway.checkout()">GERAR COBRANÇA</button>
+    <button class="btn btn-secondary" onclick="Gateway.toggleHistory()">VER HISTÓRICO</button>
+
+    <div id="history-view" class="card" style="display:none;">
+        <h3>Vendas Recentes</h3>
+        <button class="btn" onclick="Gateway.exportCSV()">Exportar CSV</button>
+        <div id="history-list" class="history-list"></div>
+    </div>
+</div>
+
+<div id="modal">
+    <div id="qr-box" style="background:white; padding:20px; border-radius:20px;"></div>
+    <button class="btn" style="width:200px; margin-top:20px;" onclick="document.getElementById('modal').style.display='none'">FECHAR</button>
 </div>
 
 <script type="module">
     import { createWeb3Modal, defaultConfig } from 'https://esm.sh/@web3modal/ethers6@4.1.2';
     
-    const projectId = '2953526137ff76e4771c57b62ba3979a'; 
-
+    const projectId = '2953526137ff76e4771c57b62ba3979a';
     const modal = createWeb3Modal({
         ethersConfig: defaultConfig({ metadata: { name: 'Coinpay', url: window.location.origin } }),
         chains: [{ chainId: 56, name: 'BNB', currency: 'BNB', rpcUrl: 'https://bsc-dataseed.binance.org/' }],
-        projectId, themeMode: 'dark'
+        projectId
     });
 
-    window.App = {
+    window.Gateway = {
         val: "",
+        transactions: JSON.parse(localStorage.getItem('txs') || '[]'),
+        
         connect: () => modal.open(),
-        press: (n) => {
-            if(n === 'C') App.val = ""; else if(n === 'DEL') App.val = App.val.slice(0, -1); else if(App.val.length < 8) App.val += n;
-            document.getElementById('display').innerText = "R$ " + (parseInt(App.val || 0)/100).toFixed(2);
+        add: (n) => {
+            if(n === 'C') Gateway.val = ""; 
+            else if(n === 'DEL') Gateway.val = Gateway.val.slice(0, -1);
+            else if(Gateway.val.length < 8) Gateway.val += n;
+            document.getElementById('display').innerText = (parseFloat(Gateway.val||0)/100).toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
         },
-        pay: () => {
-            if(!App.val) return alert("Digite o valor!");
-            document.getElementById('modal-pay').style.display = 'flex';
-            document.getElementById('qr-code').innerHTML = "";
-            new QRCode(document.getElementById('qr-code'), "BNB_PAYMENT_REQUEST_VAL_" + App.val);
+        checkout: () => {
+            if(!Gateway.val) return alert("Insira um valor.");
+            document.getElementById('modal').style.display = 'flex';
+            document.getElementById('qr-box').innerHTML = "";
+            new QRCode(document.getElementById('qr-box'), "VALOR_BNB_" + Gateway.val);
+            Gateway.saveTx(Gateway.val);
+        },
+        saveTx: (val) => {
+            Gateway.transactions.unshift({ date: new Date().toLocaleTimeString(), val: (val/100).toFixed(2) });
+            localStorage.setItem('txs', JSON.stringify(Gateway.transactions));
+            Gateway.renderHistory();
+        },
+        renderHistory: () => {
+            document.getElementById('history-list').innerHTML = Gateway.transactions.map(t => 
+                `<div class="history-item"><span>${t.date}</span><span style="color:var(--accent)">R$ ${t.val}</span></div>`
+            ).join('');
+        },
+        toggleHistory: () => {
+            const v = document.getElementById('history-view');
+            v.style.display = v.style.display === 'none' ? 'block' : 'none';
+        },
+        exportCSV: () => {
+            const csv = "Data,Valor\n" + Gateway.transactions.map(t => `${t.date},${t.val}`).join("\n");
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'historico.csv'; a.click();
         }
     };
+    Gateway.renderHistory();
 </script>
 </body>
 </html>
