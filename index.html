@@ -1,109 +1,37 @@
 <!DOCTYPE html>
-<html lang="pt-PT">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COINPAY | TERMINAL PRO</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
-    <script type="module" src="https://cdn.jsdelivr.net/npm/@web3modal/ethers6@latest/+esm"></script>
+    <title>CoinPay Titanium | PDV Industrial</title>
+    
+    <link rel="manifest" href="/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#010208">
+
     <style>
-        :root { --bg-main: #010208; --primary: #00ff88; --danger: #ff3b30; }
-        body { margin: 0; background: var(--bg-main); color: white; font-family: sans-serif; }
-        .terminal-container { width: 100%; max-width: 420px; margin: auto; height: 100vh; display: flex; flex-direction: column; border: 1px solid #1f293d; }
-        .btn-action { width: 90%; margin: 10px auto; background: var(--primary); color: #000; border: none; padding: 15px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn-action:disabled { opacity: 0.5; cursor: not-allowed; }
-        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); flex-direction:column; align-items:center; justify-content:center; z-index:100; }
-        .key { padding: 15px; background: #161b22; border: 1px solid #1f293d; color: white; border-radius: 6px; cursor: pointer; }
+        :root { --bg-main: #010208; --primary: #00ff88; }
+        body { margin: 0; background: var(--bg-main); color: white; font-family: sans-serif; overflow: hidden; }
+        .app-container { width: 100vw; height: 100vh; display: flex; flex-direction: column; }
     </style>
 </head>
 <body>
 
-<div class="terminal-container">
-    <div style="padding:20px; text-align:center;">
-        <h3>TERMINAL DE VENDAS</h3>
-        <button id="connect-btn" class="btn-action" style="background:#1f293d; color:white;">CONECTAR CARTEIRA</button>
-    </div>
+    <div class="app-container" id="app">
+        </div>
 
-    <div style="background:#0b0e14; margin:20px; padding:20px; border-radius:8px; text-align:center;">
-        <div id="visor-real" style="font-size: 36px; font-weight:bold;">R$ 0,00</div>
-    </div>
-
-    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; padding:20px;">
-        <button class="key" onclick="pressKey('1')">1</button><button class="key" onclick="pressKey('2')">2</button><button class="key" onclick="pressKey('3')">3</button>
-        <button class="key" onclick="pressKey('4')">4</button><button class="key" onclick="pressKey('5')">5</button><button class="key" onclick="pressKey('6')">6</button>
-        <button class="key" onclick="pressKey('7')">7</button><button class="key" onclick="pressKey('8')">8</button><button class="key" onclick="pressKey('9')">9</button>
-        <button class="key" onclick="pressKey('C')" style="color:var(--danger)">C</button><button class="key" onclick="pressKey('0')">0</button><button class="key" onclick="pressKey('⌫')">⌫</button>
-    </div>
-
-    <button id="btn-checkout" class="btn-action" onclick="solicitarCheckout()">GERAR COBRANÇA</button>
-
-    <div id="modal-payment" class="modal">
-        <h3 id="status-pagamento" style="color:var(--primary);">PAGAMENTO PENDENTE</h3>
-        <div id="qrcode" style="background:white; padding:10px; border-radius:8px;"></div>
-        <p id="loading-text" style="color:#555;">Verificando na rede...</p>
-        <button class="btn-action" style="background:var(--danger); color:white;" onclick="fecharModal()">CANCELAR</button>
-    </div>
-</div>
-
-<script type="module">
-    import { createWeb3Modal, defaultConfig } from 'https://cdn.jsdelivr.net/npm/@web3modal/ethers6@latest/+esm';
-    const projectId = '2953526137ff76e4771c57b62ba3979a'; 
-    createWeb3Modal({
-        ethersConfig: defaultConfig({ metadata: { name: 'Coinpay', url: window.location.origin } }),
-        chains: [{ chainId: 56, name: 'BNB Chain', currency: 'BNB', rpcUrl: 'https://bsc-dataseed.binance.org/' }],
-        projectId
-    });
-    document.getElementById('connect-btn').onclick = () => window.web3Modal.open();
-</script>
-
-<script>
-    let rawInput = "";
-    const carteira = "0x89791880468a514d34f0d36A57E70605d39A1eE3";
-
-    function pressKey(val) {
-        if(val === 'C') rawInput = "";
-        else if(val === '⌫') rawInput = rawInput.slice(0, -1);
-        else if(rawInput.length < 8) rawInput += val;
-        let v = (parseFloat(rawInput)/100 || 0).toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
-        document.getElementById("visor-real").innerText = v;
-    }
-
-    async function solicitarCheckout() {
-        let vBRL = parseFloat(rawInput) / 100;
-        if (vBRL <= 0) return;
-        
-        document.getElementById("btn-checkout").disabled = true;
-        let bnbAmount = parseFloat((vBRL / 2500).toFixed(6));
-        
-        document.getElementById("qrcode").innerHTML = "";
-        new QRCode(document.getElementById("qrcode"), { text: `ethereum:${carteira}?value=${ethers.parseEther(bnbAmount.toString()).toString()}`, width: 220, height: 220 });
-        
-        document.getElementById("modal-payment").style.display = "flex";
-        monitorarPagamento(bnbAmount);
-    }
-
-    async function monitorarPagamento(valorEsperado, tentativa = 0) {
-        try {
-            // Nota: Substituir pela URL do seu servidor Vercel real
-            const res = await fetch(`/api/check-payment?address=${carteira}&amount=${valorEsperado}`);
-            const data = await res.json();
-            
-            if (data.confirmed) {
-                document.getElementById("status-pagamento").innerText = "PAGAMENTO CONFIRMADO!";
-                setTimeout(fecharModal, 3000);
-            } else if (tentativa < 10) {
-                setTimeout(() => monitorarPagamento(valorEsperado, tentativa + 1), 2000 * Math.pow(2, tentativa));
-            }
-        } catch (e) {
-            setTimeout(() => monitorarPagamento(valorEsperado, tentativa + 1), 2000);
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('ServiceWorker registrado com sucesso'))
+                    .catch(err => console.log('Erro no ServiceWorker: ', err));
+            });
         }
-    }
+    </script>
 
-    function fecharModal() { 
-        document.getElementById("modal-payment").style.display = "none";
-        document.getElementById("btn-checkout").disabled = false;
-    }
-</script>
-</body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+    </body>
+</html></body>
 </html>
