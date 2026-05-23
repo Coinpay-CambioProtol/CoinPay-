@@ -23,7 +23,15 @@
         .modal-content { background: var(--panel); border: 1px solid var(--border); padding: 30px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; }
         .option { padding: 20px; width: 100%; margin-bottom: 10px; background: #161b22; border: 1px solid var(--border); cursor: pointer; text-align: center; color: white; }
         .option:hover { border-color: var(--neon); }
-        .input-manual { width: 100%; background: #000; border: 1px solid var(--neon); padding: 15px; color: white; margin-bottom: 10px; border-radius: 4px; }
+        .input-manual { width: 100%; background: #000; border: 1px solid var(--neon); padding: 15px; color: white; margin-bottom: 10px; border-radius: 4px; font-family: monospace; }
+        
+        /* Switch Toggle CSS */
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #30363d; transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--neon); }
+        input:checked + .slider:before { transform: translateX(20px); background-color: #000; }
     </style>
 </head>
 <body>
@@ -35,7 +43,7 @@
         </div>
         <div>
             <button id="btn-connect" onclick="Modules.Wallet.openModal()" class="text-xs border border-neon text-neon px-4 py-2 rounded">CONNECT</button>
-            <button onclick="Modules.Menu.toggleDashboard()" class="text-xs ml-2">⚙️</button>
+            <button onclick="Modules.Menu.abrirDashboard()" class="text-xs ml-2">⚙️</button>
         </div>
     </header>
 
@@ -58,13 +66,14 @@
 
     <div id="wallet-modal" class="modal"><div class="modal-content glass-3d">
         <h2 style="color:var(--neon)" class="mb-4 text-xl">CONECTAR CARTEIRA</h2>
-        <div class="option" onclick="Modules.Wallet.auto()">Conexão Automática (Metamask)</div>
+        <div class="option" onclick="Modules.Wallet.injected()">🦊 MetaMask / Carteiras Web3</div>
+        <div class="option" onclick="Modules.Wallet.walletConnect()">🔗 WalletConnect / Trust Wallet</div>
         <div class="mt-4">
-            <p class="text-xs mb-2">Conexão Manual (Endereço):</p>
+            <p class="text-xs mb-2 text-left text-gray-400">Conexão Manual (Visualização):</p>
             <input type="text" id="manual-address" placeholder="0x..." class="input-manual">
-            <button onclick="Modules.Wallet.manual()" class="w-full bg-emerald-600 py-2 rounded font-bold text-black">Conectar</button>
+            <button onclick="Modules.Wallet.manual()" class="w-full bg-emerald-600 py-2 rounded font-bold text-black" style="border:none;">Conectar Manual</button>
         </div>
-        <button onclick="document.getElementById('wallet-modal').style.display='none'" class="mt-4 text-xs underline">FECHAR</button>
+        <button onclick="document.getElementById('wallet-modal').style.display='none'" class="mt-4 text-xs underline" style="border:none; background:transparent;">FECHAR</button>
     </div></div>
 
     <div id="chain-modal" class="modal"><div class="modal-content glass-3d">
@@ -74,24 +83,51 @@
         <button onclick="document.getElementById('chain-modal').style.display='none'" class="mt-4">FECHAR</button>
     </div></div>
 
-    <div id="dashboard" class="modal"><div class="modal-content glass-3d">
-        <h2 style="color:var(--neon)">Painel CoinPay</h2>
+    <div id="dashboard" class="modal"><div class="modal-content glass-3d" style="max-width: 450px;">
+        <h2 style="color:var(--neon)" class="mb-2">⚙️ Configurações</h2>
+        
+        <div class="text-left mt-4 p-4" style="background: #161b22; border-radius: 8px; border: 1px solid var(--border);">
+            <label class="text-[10px] text-gray-400">ENDEREÇO DE RECEBIMENTO PRINCIPAL (99%)</label>
+            <input type="text" id="config-principal" class="input-manual text-xs mt-1">
+
+            <label class="text-[10px] text-gray-400 mt-2 block">ENDEREÇO DE COMISSÃO (1%)</label>
+            <input type="text" id="config-comissao" class="input-manual text-xs mt-1">
+
+            <button onclick="Modules.Menu.salvarConfiguracoes()" class="w-full mt-2 py-2 text-sm" style="border-color:var(--neon); color:var(--neon);">SALVAR ENDEREÇOS</button>
+        </div>
+
+        <div class="text-left mt-4 p-4 flex items-center justify-between" style="background: #161b22; border-radius: 8px; border: 1px solid var(--border);">
+            <span class="text-sm text-gray-300">Auto-conectar ao iniciar</span>
+            <label class="switch">
+                <input type="checkbox" id="toggle-autoconnect" onchange="Modules.Menu.toggleAutoConnect()">
+                <span class="slider"></span>
+            </label>
+        </div>
+
         <div class="option mt-4" onclick="Modules.ERP.exportarExcel()">Baixar Relatório (XLSX)</div>
-        <button onclick="Modules.Menu.toggleDashboard()" class="mt-4 w-full">Sair</button>
+        <button onclick="document.getElementById('dashboard').style.display='none'" class="mt-4 w-full">FECHAR PAINEL</button>
     </div></div>
 
     <div id="manual-modal" class="modal"><div class="modal-content glass-3d">
         <h2 style="color:var(--neon)">Manual</h2>
-        <p class="p-4 text-sm text-left">1. Digite o valor.<br>2. Clique em PROCESSAR.<br>3. Confirme as transações (Principal + Taxa).</p>
+        <p class="p-4 text-sm text-left">1. Digite o valor.<br>2. Clique em PROCESSAR.<br>3. Confirme as transações na carteira selecionada.</p>
         <button onclick="Modules.Menu.toggleManual()" class="w-full">ENTENDI</button>
     </div></div>
 
     <script>
+        // Sistema de Configurações Dinâmicas (Salva no LocalStorage)
         window.Config = { 
-            comissaoWallet: "0xefA7eb97fe55409883fB624E65BD8c155ED9b6A2", 
-            destinoPrincipal: "0x89791880468a514d34f0d36A57E70605d39A1eE3" 
+            destinoPrincipal: localStorage.getItem('cfg_principal') || "0x89791880468a514d34f0d36A57E70605d39A1eE3",
+            comissaoWallet: localStorage.getItem('cfg_comissao') || "0xefA7eb97fe55409883fB624E65BD8c155ED9b6A2", 
+            autoConnect: localStorage.getItem('cfg_autoconnect') === 'true'
         };
+
         window.State = { valorBRL: 0, transacoes: [], connectedAddress: null };
+
+        // Auto-Conexão ao carregar a página
+        window.addEventListener('load', () => {
+            if (Config.autoConnect) Modules.Wallet.injected(true);
+        });
 
         window.Core = {
             numpad: (n) => { State.valorBRL = (State.valorBRL * 10) + n; Core.updateUI(); },
@@ -99,7 +135,7 @@
             backspace: () => { State.valorBRL = Math.floor(State.valorBRL / 10); Core.updateUI(); },
             updateUI: () => { 
                 document.getElementById('visor').innerText = "R$ " + (State.valorBRL / 100).toFixed(2).replace('.', ','); 
-                const cryptoAmount = ((State.valorBRL / 100) / 3000).toFixed(4);
+                const cryptoAmount = ((State.valorBRL / 100) / 3000).toFixed(4); // Cotação base R$ 3000
                 document.getElementById('conversao').innerText = `~ ${cryptoAmount} CRYPTO`;
             }
         };
@@ -107,16 +143,34 @@
         window.Modules = {
             Wallet: {
                 openModal: () => document.getElementById('wallet-modal').style.display = 'flex',
-                auto: async () => { 
-                    if (!window.ethereum) return alert("MetaMask necessária."); 
-                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' }); 
-                    State.connectedAddress = accounts[0];
-                    document.getElementById('btn-connect').innerText = State.connectedAddress.substring(0,6) + "...";
-                    alert("Conectado."); document.getElementById('wallet-modal').style.display = 'none'; 
+                
+                // Conexão unificada para MetaMask, Trust, Coinbase (injetadas)
+                injected: async (silent = false) => { 
+                    if (!window.ethereum) {
+                        if(!silent) alert("Nenhuma carteira Web3 injetada encontrada (Ex: MetaMask, Trust).");
+                        return;
+                    }
+                    try {
+                        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' }); 
+                        State.connectedAddress = accounts[0];
+                        document.getElementById('btn-connect').innerText = State.connectedAddress.substring(0,6) + "...";
+                        document.getElementById('btn-connect').style.color = "black";
+                        document.getElementById('btn-connect').style.backgroundColor = "var(--neon)";
+                        if(!silent) alert("Carteira conectada com sucesso!"); 
+                        document.getElementById('wallet-modal').style.display = 'none'; 
+                    } catch (e) {
+                        if(!silent) alert("Conexão cancelada ou falhou.");
+                    }
                 },
+
+                // Simulação/Preparação para WalletConnect (Exige SDK completo em produção)
+                walletConnect: () => {
+                    alert("Aguardando provedor WalletConnect. No momento, use a opção MetaMask/Carteiras Web3 se estiver usando o navegador integrado da sua carteira (Trust/SafePal).");
+                },
+
                 manual: () => { 
                     const addr = document.getElementById('manual-address').value;
-                    if(!addr.startsWith("0x")) return alert("Endereço inválido.");
+                    if(!addr.startsWith("0x") || addr.length < 40) return alert("Endereço inválido.");
                     State.connectedAddress = addr;
                     document.getElementById('btn-connect').innerText = addr.substring(0,6) + "...";
                     document.getElementById('wallet-modal').style.display = 'none'; 
@@ -126,7 +180,7 @@
                 abrirSeletorRede: () => { if(State.valorBRL > 0) document.getElementById('chain-modal').style.display = 'flex'; else alert("Insira um valor."); },
                 pagar: async (chainId, symbol) => {
                     document.getElementById('chain-modal').style.display = 'none';
-                    if (!window.ethereum) return alert("MetaMask necessária.");
+                    if (!window.ethereum) return alert("Carteira não conectada.");
                     try {
                         await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: chainId }] });
                         const provider = new ethers.BrowserProvider(window.ethereum);
@@ -137,17 +191,39 @@
                         const amountPrincipal = (totalAmount * 0.99).toFixed(6);
                         const amountComissao = (totalAmount * 0.01).toFixed(6);
 
+                        // Confirmações separadas
                         await signer.sendTransaction({ to: Config.destinoPrincipal, value: ethers.parseEther(amountPrincipal) });
                         await signer.sendTransaction({ to: Config.comissaoWallet, value: ethers.parseEther(amountComissao) });
                         alert("Pagamento processado com sucesso!");
-                    } catch(e) { alert("Erro: " + e.message); }
-                },
-                gerarQR: () => alert("QR Code funcional.")
+                    } catch(e) { alert("Transação falhou ou foi rejeitada."); }
+                }
             },
             ERP: { exportarExcel: () => alert("Exportando relatório...") },
             Hardware: { printReceipt: () => alert("Impressora pronta."), readNFC: () => alert("Aproxime o cartão.") },
             Menu: {
-                toggleDashboard: () => { const d = document.getElementById('dashboard'); d.style.display = d.style.display === 'flex' ? 'none' : 'flex'; },
+                abrirDashboard: () => { 
+                    document.getElementById('config-principal').value = Config.destinoPrincipal;
+                    document.getElementById('config-comissao').value = Config.comissaoWallet;
+                    document.getElementById('toggle-autoconnect').checked = Config.autoConnect;
+                    document.getElementById('dashboard').style.display = 'flex'; 
+                },
+                salvarConfiguracoes: () => {
+                    const addr1 = document.getElementById('config-principal').value;
+                    const addr2 = document.getElementById('config-comissao').value;
+                    
+                    if(!addr1.startsWith("0x") || !addr2.startsWith("0x")) return alert("Verifique os endereços inseridos.");
+                    
+                    Config.destinoPrincipal = addr1;
+                    Config.comissaoWallet = addr2;
+                    localStorage.setItem('cfg_principal', addr1);
+                    localStorage.setItem('cfg_comissao', addr2);
+                    alert("Endereços atualizados com sucesso!");
+                },
+                toggleAutoConnect: () => {
+                    const isChecked = document.getElementById('toggle-autoconnect').checked;
+                    Config.autoConnect = isChecked;
+                    localStorage.setItem('cfg_autoconnect', isChecked);
+                },
                 toggleManual: () => { const m = document.getElementById('manual-modal'); m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; }
             }
         };
