@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COINPAY TERMINAL | PRO</title>
+    <title>COINPAY TERMINAL | CRYPTO ONLY</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root { --bg: #02040a; --neon: #00ff88; --panel: #0d1117; }
-        body { background: var(--bg); color: #fff; font-family: 'Courier New', Courier, monospace; }
+        body { background: var(--bg); color: #fff; font-family: 'Courier New', monospace; }
         .glass { background: var(--panel); border: 1px solid #30363d; border-radius: 12px; }
         .btn-pay { background: var(--neon); color: #000; font-weight: bold; width: 100%; padding: 20px; border-radius: 8px; }
-        button { transition: 0.2s; }
-        button:active { transform: scale(0.98); }
     </style>
 </head>
 <body class="p-4 flex flex-col items-center min-h-screen">
@@ -36,23 +35,18 @@
     <script>
         const App = {
             valor: 0,
-
-            // Redirecionamento Universal para App de Carteira
+            
             openInApp: () => {
-                const currentUrl = window.location.href;
-                const dAppUrl = currentUrl.replace(/^https?:\/\//, '');
-                window.location.href = `https://metamask.app.link/dapp/${dAppUrl}`;
+                const url = window.location.href.replace(/^https?:\/\//, '');
+                window.location.href = `https://metamask.app.link/dapp/${url}`;
             },
 
             connect: async () => {
-                if (!window.ethereum) {
-                    App.openInApp(); // Se não tem carteira injetada, abre o App
-                    return;
-                }
+                if (!window.ethereum) return App.openInApp();
                 try {
                     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
                     document.getElementById('btn-connect').innerText = accounts[0].slice(0,6) + "...";
-                } catch(e) { alert("Conexão cancelada."); }
+                } catch(e) { alert("Conexão necessária para prosseguir."); }
             },
 
             numpad: (n) => { App.valor = (App.valor * 10) + n; App.update(); },
@@ -61,27 +55,23 @@
             update: () => { document.getElementById('visor').innerText = "R$ " + (App.valor/100).toFixed(2).replace('.', ','); },
 
             process: async () => {
-                // 1. Verifica se está no celular sem carteira
+                if(App.valor === 0) return alert("Digite um valor.");
+                
+                // Redirecionamento forçado para garantir que a transação ocorra dentro da carteira
                 if (!window.ethereum) {
                     App.openInApp();
-                    return;
+                } else {
+                    await App.connect();
+                    // Aqui você acionaria o seu contrato via ethers.js
+                    alert("Iniciando contrato na Polygon...");
                 }
-                
-                // 2. Garante conexão
-                await App.connect();
-                
-                // 3. Executa a lógica de chamada do Contrato
-                alert("Redirecionando para assinatura na carteira...");
             }
         };
 
-        // Auto-conectar ao abrir se já houver permissão
         window.onload = async () => {
             if (window.ethereum) {
                 const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-                if (accounts.length > 0) {
-                    document.getElementById('btn-connect').innerText = accounts[0].slice(0,6) + "...";
-                }
+                if (accounts.length > 0) document.getElementById('btn-connect').innerText = accounts[0].slice(0,6) + "...";
             }
         };
     </script>
