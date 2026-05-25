@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COINPAY TERMINAL | CRYPTO ONLY</title>
+    <title>COINPAY GLOBAL TERMINAL</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root { --bg: #02040a; --neon: #00ff88; --panel: #0d1117; }
-        body { background: var(--bg); color: #fff; font-family: 'Courier New', monospace; }
+        body { background: var(--bg); color: #fff; font-family: monospace; }
         .glass { background: var(--panel); border: 1px solid #30363d; border-radius: 12px; }
         .btn-pay { background: var(--neon); color: #000; font-weight: bold; width: 100%; padding: 20px; border-radius: 8px; }
     </style>
@@ -18,15 +17,19 @@
 
     <header class="w-full max-w-sm flex justify-between items-center mb-6">
         <h1 class="text-sm font-bold">COINPAY <span style="color:var(--neon)">TERMINAL</span></h1>
-        <button id="btn-connect" onclick="App.connect()" class="text-[10px] border border-green-500 px-3 py-1 rounded">CONECTAR</button>
+        <select id="moeda" class="bg-black border border-gray-700 text-xs p-1">
+            <option value="BRL">BRL (R$)</option>
+            <option value="USD">USD ($)</option>
+            <option value="EUR">EUR (€)</option>
+        </select>
     </header>
 
     <main class="w-full max-w-sm glass p-6">
-        <div id="visor" class="text-right text-5xl mb-6 text-green-400">R$ 0,00</div>
+        <div id="visor" class="text-right text-4xl mb-6 text-green-400">0,00</div>
         <div class="grid grid-cols-3 gap-2 mb-4">
             <button onclick="App.numpad(1)" class="p-4 bg-gray-800 rounded">1</button><button onclick="App.numpad(2)" class="p-4 bg-gray-800 rounded">2</button><button onclick="App.numpad(3)" class="p-4 bg-gray-800 rounded">3</button>
             <button onclick="App.numpad(4)" class="p-4 bg-gray-800 rounded">4</button><button onclick="App.numpad(5)" class="p-4 bg-gray-800 rounded">5</button><button onclick="App.numpad(6)" class="p-4 bg-gray-800 rounded">6</button>
-            <button onclick="App.numpad(7)" class="p-4 bg-gray-800 rounded">7</button><button onclick="App.numpad(8)" class="p-4 bg-gray-800 rounded">8</button><button onclick="App.numpad(9)" class="p-4 bg-gray-800 rounded">9</button>
+            <button onclick="App.numpad(7)" class="p-4 bg-gray-800 rounded">7</button><button onclick="App.numpad(8)" class="p-4 bg-gray-800 rounded">8</button><button onclick="App.numpad(9)" class="p-4 bg-gray-900 rounded">9</button>
             <button onclick="App.clear()" class="p-4 bg-red-900 rounded">C</button><button onclick="App.numpad(0)" class="p-4 bg-gray-800 rounded">0</button><button onclick="App.backspace()" class="p-4 bg-gray-800 rounded">⌫</button>
         </div>
         <button class="btn-pay" onclick="App.process()">PROCESSAR PAGAMENTO</button>
@@ -36,42 +39,33 @@
         const App = {
             valor: 0,
             
-            openInApp: () => {
-                const url = window.location.href.replace(/^https?:\/\//, '');
-                window.location.href = `https://metamask.app.link/dapp/${url}`;
-            },
-
-            connect: async () => {
-                if (!window.ethereum) return App.openInApp();
-                try {
-                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    document.getElementById('btn-connect').innerText = accounts[0].slice(0,6) + "...";
-                } catch(e) { alert("Conexão necessária para prosseguir."); }
-            },
-
             numpad: (n) => { App.valor = (App.valor * 10) + n; App.update(); },
             clear: () => { App.valor = 0; App.update(); },
             backspace: () => { App.valor = Math.floor(App.valor / 10); App.update(); },
-            update: () => { document.getElementById('visor').innerText = "R$ " + (App.valor/100).toFixed(2).replace('.', ','); },
+            update: () => { 
+                const moeda = document.getElementById('moeda').value;
+                const simbolo = moeda === 'BRL' ? 'R$' : (moeda === 'USD' ? '$' : '€');
+                document.getElementById('visor').innerText = `${simbolo} ${(App.valor/100).toFixed(2)}`; 
+            },
 
             process: async () => {
                 if(App.valor === 0) return alert("Digite um valor.");
                 
-                // Redirecionamento forçado para garantir que a transação ocorra dentro da carteira
-                if (!window.ethereum) {
-                    App.openInApp();
-                } else {
-                    await App.connect();
-                    // Aqui você acionaria o seu contrato via ethers.js
-                    alert("Iniciando contrato na Polygon...");
-                }
-            }
-        };
+                const moeda = document.getElementById('moeda').value;
+                const valorFinal = (App.valor / 100);
 
-        window.onload = async () => {
-            if (window.ethereum) {
-                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-                if (accounts.length > 0) document.getElementById('btn-connect').innerText = accounts[0].slice(0,6) + "...";
+                // Força o redirecionamento para o DApp da carteira
+                const url = window.location.href.replace(/^https?:\/\//, '');
+                
+                if (!window.ethereum) {
+                    // Redirecionamento para dispositivos móveis
+                    window.location.href = `https://metamask.app.link/dapp/${url}?v=${valorFinal}&m=${moeda}`;
+                } else {
+                    // Conexão direta se estiver no DApp Browser
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    alert(`Pagamento de ${valorFinal} ${moeda} pronto para assinatura no seu contrato.`);
+                    // Aqui você chamaria o seu contrato: routerContract.pagar(...)
+                }
             }
         };
     </script>
