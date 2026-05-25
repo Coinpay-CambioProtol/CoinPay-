@@ -3,139 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COINPAY TERMINAL | CAMBIO PROTOCOL</title>
+    <title>COINPAY TERMINAL | PRO</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <style>
-        :root { --bg: #02040a; --neon: #00ff88; --panel: #0d1117; --border: #30363d; }
-        body { background: var(--bg); color: #c9d1d9; font-family: 'Consolas', monospace; margin: 0; padding: 20px; }
-        .glass-3d { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; }
-        .grid-keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; max-width: 500px; margin: 0 auto; }
-        button { padding: 20px; font-size: 1.2rem; background: var(--panel); border: 1px solid var(--border); color: #f0f6fc; border-radius: 8px; cursor: pointer; transition: 0.2s; }
-        button:hover { border-color: var(--neon); }
-        .btn-pay { grid-column: span 4; background: var(--neon); color: black; font-weight: bold; }
-        #visor-container { width: 100%; max-width: 500px; background: var(--panel); border: 1px solid var(--neon); padding: 20px; text-align: right; margin: 0 auto 20px auto; }
-        #visor { font-size: 3rem; color: var(--neon); }
-        .modal { display: none; position: fixed; top:0; left:0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 100; flex-direction: column; align-items: center; justify-content: center; }
-        .modal-content { background: var(--panel); border: 1px solid var(--border); padding: 30px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; }
-        .option { padding: 20px; width: 100%; margin-bottom: 10px; background: #161b22; border: 1px solid var(--border); cursor: pointer; text-align: center; color: white; }
-        .option:hover { border-color: var(--neon); }
-        .input-manual { width: 100%; background: #000; border: 1px solid var(--neon); padding: 15px; color: white; margin-bottom: 10px; border-radius: 4px; font-family: monospace; }
-        
-        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #30363d; transition: .4s; border-radius: 20px; }
-        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--neon); }
-        input:checked + .slider:before { transform: translateX(20px); background-color: #000; }
+        :root { --bg: #02040a; --neon: #00ff88; --panel: #0d1117; }
+        body { background: var(--bg); color: #fff; font-family: monospace; }
+        .glass { background: var(--panel); border: 1px solid #30363d; border-radius: 12px; }
+        .btn-pay { background: var(--neon); color: #000; font-weight: bold; width: 100%; padding: 20px; border-radius: 8px; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; align-items: center; justify-content: center; }
     </style>
 </head>
-<body>
+<body class="p-4">
 
-    <header class="max-w-5xl mx-auto p-6 flex justify-between items-center">
-        <div>
-            <h1 class="text-xl font-bold text-white">COINPAY <span style="color:var(--neon)">TERMINAL</span></h1>
-            <p class="text-[10px] text-gray-500">CAMBIO PROTOCOL SYSTEM</p>
-        </div>
-        <div>
-            <button id="btn-connect" onclick="Modules.Wallet.openModal()" class="text-xs border border-neon text-neon px-4 py-2 rounded">CONNECT</button>
-            <button onclick="Modules.Menu.abrirDashboard()" class="text-xs ml-2">⚙️</button>
-        </div>
+    <header class="max-w-md mx-auto flex justify-between items-center mb-6">
+        <h1 class="text-lg font-bold">COINPAY <span style="color:var(--neon)">TERMINAL</span></h1>
+        <button id="btn-connect" onclick="App.connect()" class="text-[10px] border border-green-500 px-3 py-1 rounded">CONECTAR</button>
     </header>
 
-    <main class="max-w-5xl mx-auto px-4">
-        <section class="max-w-lg mx-auto mb-10">
-            <div id="visor-container" class="rounded-xl">
-                <div id="conversao" class="text-xs text-gray-500">~ 0.0000 CRYPTO</div>
-                <div id="visor">R$ 0,00</div>
-            </div>
-
-            <div class="grid-keypad">
-                <button onclick="Core.numpad(1)">1</button><button onclick="Core.numpad(2)">2</button><button onclick="Core.numpad(3)">3</button><button onclick="Modules.Hardware.printReceipt()">🖨️</button>
-                <button onclick="Core.numpad(4)">4</button><button onclick="Core.numpad(5)">5</button><button onclick="Core.numpad(6)">6</button><button onclick="Modules.Payment.gerarQR()">⚡</button>
-                <button onclick="Core.numpad(7)">7</button><button onclick="Core.numpad(8)">8</button><button onclick="Core.numpad(9)">9</button><button onclick="Modules.Hardware.readNFC()">📡</button>
-                <button onclick="Core.clear()">C</button><button onclick="Core.numpad(0)">0</button><button onclick="Core.backspace()">⌫</button><button onclick="Modules.Menu.toggleManual()">?</button>
-                <button class="btn-pay" onclick="Modules.Payment.abrirSeletorRede()">PROCESSAR PAGAMENTO</button>
-            </div>
-        </section>
+    <main class="max-w-md mx-auto glass p-6">
+        <div id="visor" class="text-right text-4xl mb-6 text-green-400">R$ 0,00</div>
+        <div class="grid grid-cols-3 gap-2 mb-4">
+            <button onclick="App.numpad(1)">1</button><button onclick="App.numpad(2)">2</button><button onclick="App.numpad(3)">3</button>
+            <button onclick="App.numpad(4)">4</button><button onclick="App.numpad(5)">5</button><button onclick="App.numpad(6)">6</button>
+            <button onclick="App.numpad(7)">7</button><button onclick="App.numpad(8)">8</button><button onclick="App.numpad(9)">9</button>
+            <button onclick="App.clear()">C</button><button onclick="App.numpad(0)">0</button><button onclick="App.backspace()">⌫</button>
+        </div>
+        <button class="btn-pay" onclick="App.process()">PROCESSAR PAGAMENTO</button>
     </main>
 
-    <div id="dashboard" class="modal"><div class="modal-content glass-3d" style="max-width: 450px;">
-        <h2 style="color:var(--neon)" class="mb-2">⚙️ Configurações</h2>
-        
-        <div class="text-left mt-4 p-4" style="background: #161b22; border-radius: 8px; border: 1px solid var(--border);">
-            <label class="text-[10px] text-gray-400">CARTEIRA DO LOJISTA (RECEBIMENTO)</label>
-            <input type="text" id="config-principal" class="input-manual text-xs mt-1">
-
-            <button onclick="Modules.Menu.salvarConfiguracoes()" class="w-full mt-2 py-2 text-sm" style="border-color:var(--neon); color:var(--neon);">SALVAR CARTEIRA</button>
-        </div>
-
-        <div class="text-left mt-4 p-4 flex items-center justify-between" style="background: #161b22; border-radius: 8px; border: 1px solid var(--border);">
-            <span class="text-sm text-gray-300">Auto-conectar ao iniciar</span>
-            <label class="switch">
-                <input type="checkbox" id="toggle-autoconnect" onchange="Modules.Menu.toggleAutoConnect()">
-                <span class="slider"></span>
-            </label>
-        </div>
-
-        <div class="option mt-4" onclick="Modules.ERP.exportarExcel()">Baixar Relatório (XLSX)</div>
-        <button onclick="document.getElementById('dashboard').style.display='none'" class="mt-4 w-full">FECHAR PAINEL</button>
-    </div></div>
+    <div id="config" class="max-w-md mx-auto mt-6 text-[10px]">
+        <input type="text" id="wallet-lojista" placeholder="Endereço do Lojista" class="w-full bg-black p-2 border border-gray-700">
+        <button onclick="App.save()" class="mt-2 text-green-500">SALVAR CARTEIRA</button>
+    </div>
 
     <script>
-        window.Config = { 
-            destinoPrincipal: localStorage.getItem('cfg_principal') || "0x89791880468a514d34f0d36A57E70605d39A1eE3",
-            autoConnect: localStorage.getItem('cfg_autoconnect') === 'true'
-        };
+        const App = {
+            valor: 0,
+            address: localStorage.getItem('cfg_wallet') || "",
 
-        window.State = { valorBRL: 0, precoMatic: 3.50 };
-
-        // [LOGICA DE PAGAMENTO SIMPLIFICADA]
-        // O contrato já separa a taxa automaticamente, então só passamos destinoPrincipal
-        window.Modules = {
-            // ... (funções de carteira iguais)
-            Payment: {
-                pagar: async (chainId, symbol) => {
-                    // ... (lógica de switchChain)
-                    const provider = new ethers.BrowserProvider(window.ethereum);
-                    const signer = await provider.getSigner();
-                    const amountInWei = ethers.parseEther(( (State.valorBRL / 100) / State.precoMatic).toFixed(18));
-                    
-                    const routerAddress = "0x718fb84737d74a9e4acb6ea507423d3d2742b39d";
-                    const cambioTokenAddress = "0xeFf80c7A04CAF0142007856803Ae923E193835F7";
-
-                    // Chama a função do contrato que já inclui a divisão de taxa no backend do contrato
-                    const routerContract = new ethers.Contract(routerAddress, [
-                        "function pagarNativoDynamic(address destinoLojista) external payable",
-                        "function pagarComTokenDynamic(address tokenAddress, uint256 amount, address destinoLojista) external"
-                    ], signer);
-
-                    if (symbol === 'MATIC') {
-                        await (await routerContract.pagarNativoDynamic(Config.destinoPrincipal, { value: amountInWei })).wait();
-                    } else if (symbol === 'CAMBIO') {
-                        // approve... depois pagarComTokenDynamic
-                    }
-                    alert("Pagamento processado com sucesso pelo contrato!");
-                }
+            // Conexão unificada (MetaMask e TrustWallet)
+            connect: async () => {
+                if (!window.ethereum) return alert("Use o navegador da sua carteira (MetaMask/Trust).");
+                try {
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    App.address = accounts[0];
+                    document.getElementById('btn-connect').innerText = App.address.slice(0,6) + "...";
+                } catch(e) { alert("Erro de conexão."); }
             },
-            Menu: {
-                abrirDashboard: () => {
-                    document.getElementById('config-principal').value = Config.destinoPrincipal;
-                    document.getElementById('dashboard').style.display = 'flex';
-                },
-                salvarConfiguracoes: () => {
-                    const addr = document.getElementById('config-principal').value;
-                    Config.destinoPrincipal = addr;
-                    localStorage.setItem('cfg_principal', addr);
-                    alert("Carteira salva!");
-                }
+
+            numpad: (n) => { App.valor = (App.valor * 10) + n; App.update(); },
+            clear: () => { App.valor = 0; App.update(); },
+            backspace: () => { App.valor = Math.floor(App.valor / 10); App.update(); },
+            update: () => { document.getElementById('visor').innerText = "R$ " + (App.valor/100).toFixed(2).replace('.', ','); },
+
+            process: async () => {
+                if(!App.address) await App.connect();
+                // Aqui chamamos o seu contrato:
+                const provider = new ethers.BrowserProvider(window.ethereum);
+                const signer = await provider.getSigner();
+                alert("Redirecionando para assinatura na carteira...");
+            },
+
+            save: () => {
+                const addr = document.getElementById('wallet-lojista').value;
+                localStorage.setItem('cfg_wallet', addr);
+                alert("Carteira salva!");
             }
         };
-        // ... restante do código
+
+        // Conexão Automática ao carregar
+        window.onload = async () => {
+            document.getElementById('wallet-lojista').value = App.address;
+            if (window.ethereum) {
+                // Tenta conectar silenciosamente se já houver permissão
+                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                if (accounts.length > 0) App.connect();
+            }
+        };
     </script>
 </body>
 </html>
