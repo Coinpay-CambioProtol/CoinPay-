@@ -3,207 +3,296 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CoinPay - Cambio Protocol</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <title>COINPAY TERMINAL | CAMBIO PROTOCOL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
-        body {
-            font-family: 'Courier New', Courier, monospace;
-            background-color: #121212;
-            color: #00ff00;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .terminal {
-            background-color: #1e1e1e;
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid #333;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
-        }
-        h2 {
-            text-align: center;
-            border-bottom: 1px solid #333;
-            padding-bottom: 10px;
-            margin-top: 0;
-        }
-        label {
-            display: block;
-            margin-top: 15px;
-            font-size: 14px;
-        }
-        input, select {
-            width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            background-color: #2b2b2b;
-            border: 1px solid #444;
-            color: #fff;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        button {
-            width: 100%;
-            padding: 12px;
-            margin-top: 20px;
-            background-color: #008c23;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        button:hover {
-            background-color: #00ff00;
-            color: #000;
-        }
-        #status {
-            margin-top: 15px;
-            font-size: 12px;
-            text-align: center;
-            word-wrap: break-word;
-        }
-        .btn-connect {
-            background-color: #f6851b;
-            color: #fff;
-        }
-        .btn-connect:hover {
-            background-color: #e2761b;
-            color: #fff;
-        }
+        :root { --bg: #02040a; --neon: #00ff88; --panel: #0d1117; --border: #30363d; }
+        body { background: var(--bg); color: #c9d1d9; font-family: 'Consolas', monospace; margin: 0; padding: 20px; }
+        .glass-3d { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; }
+        .grid-keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; max-width: 500px; margin: 0 auto; }
+        button { padding: 20px; font-size: 1.2rem; background: var(--panel); border: 1px solid var(--border); color: #f0f6fc; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        button:hover { border-color: var(--neon); }
+        .btn-pay { grid-column: span 4; background: var(--neon); color: black; font-weight: bold; }
+        #visor-container { width: 100%; max-width: 500px; background: var(--panel); border: 1px solid var(--neon); padding: 20px; text-align: right; margin: 0 auto 20px auto; }
+        #visor { font-size: 3rem; color: var(--neon); }
+        .modal { display: none; position: fixed; top:0; left:0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 100; flex-direction: column; align-items: center; justify-content: center; }
+        .modal-content { background: var(--panel); border: 1px solid var(--border); padding: 30px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; }
+        .option { padding: 20px; width: 100%; margin-bottom: 10px; background: #161b22; border: 1px solid var(--border); cursor: pointer; text-align: center; color: white; }
+        .option:hover { border-color: var(--neon); }
+        .input-manual { width: 100%; background: #000; border: 1px solid var(--neon); padding: 15px; color: white; margin-bottom: 10px; border-radius: 4px; font-family: monospace; }
+        
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #30363d; transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--neon); }
+        input:checked + .slider:before { transform: translateX(20px); background-color: #000; }
     </style>
 </head>
 <body>
 
-<div class="terminal">
-    <h2>[ CoinPay | Cambio Protocol ]</h2>
-    
-    <button id="btnConnect" class="btn-connect">Conectar MetaMask</button>
-    <div id="walletAddress" style="text-align: center; margin-top: 5px; font-size: 12px;"></div>
+    <header class="max-w-5xl mx-auto p-6 flex justify-between items-center">
+        <div>
+            <h1 class="text-xl font-bold text-white">COINPAY <span style="color:var(--neon)">TERMINAL</span></h1>
+            <p class="text-[10px] text-gray-500">CAMBIO PROTOCOL SYSTEM</p>
+        </div>
+        <div>
+            <button id="btn-connect" onclick="Modules.Wallet.openModal()" class="text-xs border border-neon text-neon px-4 py-2 rounded">CONNECT</button>
+            <button onclick="Modules.Menu.abrirDashboard()" class="text-xs ml-2">⚙️</button>
+        </div>
+    </header>
 
-    <label for="lojista">Endereço do Lojista (Recebedor):</label>
-    <input type="text" id="lojista" placeholder="0x..." required>
+    <main class="max-w-5xl mx-auto px-4">
+        <section class="max-w-lg mx-auto mb-10">
+            <div id="visor-container" class="rounded-xl">
+                <div id="conversao" class="text-xs text-gray-500">~ 0.0000 CRYPTO</div>
+                <div id="visor">R$ 0,00</div>
+            </div>
 
-    <label for="moeda">Moeda de Pagamento:</label>
-    <select id="moeda">
-        <option value="MATIC">MATIC (Taxa 3%)</option>
-        <option value="CAMBIO">CAMBIO Token (Taxa 1%)</option>
-    </select>
+            <div class="grid-keypad">
+                <button onclick="Core.numpad(1)">1</button><button onclick="Core.numpad(2)">2</button><button onclick="Core.numpad(3)">3</button><button onclick="Modules.Hardware.printReceipt()">🖨️</button>
+                <button onclick="Core.numpad(4)">4</button><button onclick="Core.numpad(5)">5</button><button onclick="Core.numpad(6)">6</button><button onclick="Modules.Payment.gerarQR()">⚡</button>
+                <button onclick="Core.numpad(7)">7</button><button onclick="Core.numpad(8)">8</button><button onclick="Core.numpad(9)">9</button><button onclick="Modules.Hardware.readNFC()">📡</button>
+                <button onclick="Core.clear()">C</button><button onclick="Core.numpad(0)">0</button><button onclick="Core.backspace()">⌫</button><button onclick="Modules.Menu.toggleManual()">?</button>
+                <button class="btn-pay" onclick="Modules.Payment.abrirSeletorRede()">PROCESSAR PAGAMENTO</button>
+            </div>
+        </section>
+    </main>
 
-    <label for="valor">Valor:</label>
-    <input type="number" id="valor" placeholder="Ex: 1.5" step="any" required>
+    <div id="wallet-modal" class="modal"><div class="modal-content glass-3d">
+        <h2 style="color:var(--neon)" class="mb-4 text-xl">CONECTAR CARTEIRA</h2>
+        <div class="option" onclick="Modules.Wallet.injected()">🦊 MetaMask / Injetadas</div>
+        <div class="option bg-cyan-900" onclick="Modules.Wallet.openMobileApp()">📱 Abrir no App da MetaMask</div>
+        <div class="mt-4">
+            <p class="text-xs mb-2 text-left text-gray-400">Conexão Manual (Visualização):</p>
+            <input type="text" id="manual-address" placeholder="0x..." class="input-manual">
+            <button onclick="Modules.Wallet.manual()" class="w-full bg-emerald-600 py-2 rounded font-bold text-black" style="border:none;">Conectar Manual</button>
+        </div>
+        <button onclick="document.getElementById('wallet-modal').style.display='none'" class="mt-4 text-xs underline" style="border:none; background:transparent;">FECHAR</button>
+    </div></div>
 
-    <button id="btnPagar">Processar Pagamento</button>
+    <div id="qr-modal" class="modal"><div class="modal-content glass-3d">
+        <h2 style="color:var(--neon)" class="mb-4 text-xl">PAGAMENTO VIA QR CODE</h2>
+        <div class="p-4 bg-white rounded-lg inline-block mx-auto mb-2">
+            <div id="qrcode"></div>
+        </div>
+        <p id="qr-info" class="text-xs text-gray-400 my-2"></p>
+        <button onclick="Modules.Payment.fecharQR()" class="mt-4 w-full bg-red-600 py-2 rounded font-bold text-white" style="border:none;">FECHAR</button>
+    </div></div>
 
-    <div id="status">Aguardando conexão...</div>
-</div>
+    <div id="chain-modal" class="modal"><div class="modal-content glass-3d">
+        <h2 style="color:var(--neon)" class="mb-4">SELECIONE A REDE</h2>
+        <div class="option" onclick="Modules.Payment.pagar('0x89', 'MATIC')">Polygon (MATIC - Taxa 3%)</div>
+        <div class="option" onclick="Modules.Payment.pagar('0x89', 'CAMBIO')">Polygon (CAMBIO Token - Taxa 1%)</div>
+        <div class="option" onclick="Modules.Payment.pagar('0x38', 'BNB')">BNB Smart Chain</div>
+        <button onclick="document.getElementById('chain-modal').style.display='none'" class="mt-4">FECHAR</button>
+    </div></div>
 
-<script>
-    // Endereços dos Contratos oficiais da Cambio Protocol na Polygon
-    const routerAddress = "0x718fb84737d74a9e4acb6ea507423d3d2742b39d";
-    const cambioTokenAddress = "0xeFf80c7A04CAF0142007856803Ae923E193835F7";
+    <div id="dashboard" class="modal"><div class="modal-content glass-3d" style="max-width: 450px;">
+        <h2 style="color:var(--neon)" class="mb-2">⚙️ Configurações</h2>
+        
+        <div class="text-left mt-4 p-4" style="background: #161b22; border-radius: 8px; border: 1px solid var(--border);">
+            <label class="text-[10px] text-gray-400">ENDEREÇO DE RECEBIMENTO PRINCIPAL (LOJISTA)</label>
+            <input type="text" id="config-principal" class="input-manual text-xs mt-1">
 
-    // ABIs mínimos necessários para as funções
-    const routerAbi = [
-        "function pagarNativoDynamic(address payable destinoLojista) external payable",
-        "function pagarComTokenDynamic(address tokenAddress, uint256 amount, address destinoLojista) external"
-    ];
-    
-    const erc20Abi = [
-        "function approve(address spender, uint256 amount) external returns (bool)",
-        "function allowance(address owner, address spender) external view returns (uint256)"
-    ];
+            <label class="text-[10px] text-gray-400 mt-2 block">ENDEREÇO DE COMISSÃO (FALLBACK MANUAL)</label>
+            <input type="text" id="config-comissao" class="input-manual text-xs mt-1">
 
-    let provider;
-    let signer;
+            <button onclick="Modules.Menu.salvarConfiguracoes()" class="w-full mt-2 py-2 text-sm" style="border-color:var(--neon); color:var(--neon);">SALVAR ENDEREÇOS</button>
+        </div>
 
-    const btnConnect = document.getElementById('btnConnect');
-    const btnPagar = document.getElementById('btnPagar');
-    const statusDiv = document.getElementById('status');
-    const walletDiv = document.getElementById('walletAddress');
+        <div class="text-left mt-4 p-4 flex items-center justify-between" style="background: #161b22; border-radius: 8px; border: 1px solid var(--border);">
+            <span class="text-sm text-gray-300">Auto-conectar ao iniciar</span>
+            <label class="switch">
+                <input type="checkbox" id="toggle-autoconnect" onchange="Modules.Menu.toggleAutoConnect()">
+                <span class="slider"></span>
+            </label>
+        </div>
 
-    // Função para conectar a carteira
-    btnConnect.addEventListener('click', async () => {
-        if (window.ethereum) {
-            try {
-                provider = new ethers.providers.Web3Provider(window.ethereum);
-                await provider.send("eth_requestAccounts", []);
-                signer = provider.getSigner();
-                const address = await signer.getAddress();
-                walletDiv.innerText = "Carteira: " + address.substring(0, 6) + "..." + address.substring(38);
-                btnConnect.style.display = 'none';
-                statusDiv.innerText = "Conectado. Pronto para operar.";
-                statusDiv.style.color = "#00ff00";
-            } catch (error) {
-                statusDiv.innerText = "Erro ao conectar: " + error.message;
-                statusDiv.style.color = "red";
+        <div class="option mt-4" onclick="Modules.ERP.exportarExcel()">Baixar Relatório (XLSX)</div>
+        <button onclick="document.getElementById('dashboard').style.display='none'" class="mt-4 w-full">FECHAR PAINEL</button>
+    </div></div>
+
+    <div id="manual-modal" class="modal"><div class="modal-content glass-3d">
+        <h2 style="color:var(--neon)">Manual</h2>
+        <p class="p-4 text-sm text-left">1. Digite o valor.<br>2. Clique em PROCESSAR.<br>3. Confirme as transações na carteira selecionada.</p>
+        <button onclick="Modules.Menu.toggleManual()" class="w-full">ENTENDI</button>
+    </div></div>
+
+    <script>
+        window.Config = { 
+            destinoPrincipal: localStorage.getItem('cfg_principal') || "0x89791880468a514d34f0d36A57E70605d39A1eE3",
+            comissaoWallet: localStorage.getItem('cfg_comissao') || "0xefA7eb97fe55409883fB624E65BD8c155ED9b6A2", 
+            autoConnect: localStorage.getItem('cfg_autoconnect') === 'true'
+        };
+
+        window.State = { valorBRL: 0, transacoes: [], connectedAddress: null, qrInstance: null };
+
+        window.addEventListener('load', () => {
+            if (Config.autoConnect) Modules.Wallet.injected(true);
+        });
+
+        window.Core = {
+            numpad: (n) => { State.valorBRL = (State.valorBRL * 10) + n; Core.updateUI(); },
+            clear: () => { State.valorBRL = 0; Core.updateUI(); },
+            backspace: () => { State.valorBRL = Math.floor(State.valorBRL / 10); Core.updateUI(); },
+            updateUI: () => { 
+                document.getElementById('visor').innerText = "R$ " + (State.valorBRL / 100).toFixed(2).replace('.', ','); 
+                const cryptoAmount = ((State.valorBRL / 100) / 3000).toFixed(4);
+                document.getElementById('conversao').innerText = `~ ${cryptoAmount} CRYPTO`;
             }
-        } else {
-            statusDiv.innerText = "MetaMask não encontrada no navegador!";
-            statusDiv.style.color = "red";
-        }
-    });
+        };
 
-    // Função para processar o pagamento
-    btnPagar.addEventListener('click', async () => {
-        if (!signer) {
-            alert("Conecte a carteira primeiro!");
-            return;
-        }
-
-        const lojista = document.getElementById('lojista').value;
-        const moeda = document.getElementById('moeda').value;
-        const valorInput = document.getElementById('valor').value;
-
-        if (!ethers.utils.isAddress(lojista) || !valorInput || valorInput <= 0) {
-            statusDiv.innerText = "Erro: Verifique o endereço do lojista e o valor.";
-            statusDiv.style.color = "red";
-            return;
-        }
-
-        try {
-            const valorEmWei = ethers.utils.parseUnits(valorInput, 18);
-            const routerContract = new ethers.Contract(routerAddress, routerAbi, signer);
-
-            if (moeda === "MATIC") {
-                statusDiv.innerText = "Aguardando confirmação de MATIC...";
-                statusDiv.style.color = "yellow";
+        window.Modules = {
+            Wallet: {
+                openModal: () => document.getElementById('wallet-modal').style.display = 'flex',
                 
-                const tx = await routerContract.pagarNativoDynamic(lojista, { value: valorEmWei });
-                statusDiv.innerText = "Transação enviada! Aguardando blockchain...";
-                await tx.wait();
-                
-                statusDiv.innerText = "Pagamento em MATIC concluído com sucesso! (Taxa de 3% cobrada)";
-                statusDiv.style.color = "#00ff00";
+                injected: async (silent = false) => { 
+                    if (!window.ethereum) {
+                        if(!silent) alert("Nenhuma carteira Web3 injetada ativa. Se estiver no celular, use a opção 'Abrir no App'.");
+                        return;
+                    }
+                    try {
+                        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' }); 
+                        State.connectedAddress = accounts[0];
+                        document.getElementById('btn-connect').innerText = State.connectedAddress.substring(0,6) + "...";
+                        document.getElementById('btn-connect').style.color = "black";
+                        document.getElementById('btn-connect').style.backgroundColor = "var(--neon)";
+                        document.getElementById('wallet-modal').style.display = 'none'; 
+                    } catch (e) {
+                        if(!silent) alert("Conexão recusada.");
+                    }
+                },
 
-            } else if (moeda === "CAMBIO") {
-                const tokenContract = new ethers.Contract(cambioTokenAddress, erc20Abi, signer);
-                
-                statusDiv.innerText = "Passo 1/2: Aprove o gasto do Token CAMBIO...";
-                statusDiv.style.color = "yellow";
-                
-                const txApprove = await tokenContract.approve(routerAddress, valorEmWei);
-                await txApprove.wait();
+                openMobileApp: () => {
+                    const cleanUrl = window.location.href.replace(/^https?:\/\//, '');
+                    window.location.href = `https://metamask.app.link/dapp/${cleanUrl}`;
+                },
 
-                statusDiv.innerText = "Passo 2/2: Confirmando pagamento no Roteador...";
-                const txPay = await routerContract.pagarComTokenDynamic(cambioTokenAddress, valorEmWei, lojista);
-                await txPay.wait();
+                manual: () => { 
+                    const addr = document.getElementById('manual-address').value;
+                    if(!addr.startsWith("0x") || addr.length < 40) return alert("Endereço inválido.");
+                    State.connectedAddress = addr;
+                    document.getElementById('btn-connect').innerText = addr.substring(0,6) + "...";
+                    document.getElementById('wallet-modal').style.display = 'none'; 
+                }
+            },
+            Payment: {
+                abrirSeletorRede: () => { if(State.valorBRL > 0) document.getElementById('chain-modal').style.display = 'flex'; else alert("Insira um valor."); },
+                pagar: async (chainId, symbol) => {
+                    document.getElementById('chain-modal').style.display = 'none';
+                    if (!window.ethereum) return alert("Carteira não conectada.");
+                    try {
+                        await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: chainId }] });
+                        const provider = new ethers.BrowserProvider(window.ethereum);
+                        const signer = await provider.getSigner();
+                        
+                        const totalBrl = State.valorBRL / 100;
+                        const totalAmount = totalBrl / 3000;
+                        const amountInWei = ethers.parseEther(totalAmount.toFixed(18));
 
-                statusDiv.innerText = "Pagamento em CAMBIO concluído com sucesso! (Taxa de 1% cobrada)";
-                statusDiv.style.color = "#00ff00";
+                        const routerAddress = "0x718fb84737d74a9e4acb6ea507423d3d2742b39d";
+                        const cambioTokenAddress = "0xeFf80c7A04CAF0142007856803Ae923E193835F7";
+
+                        if (symbol === 'MATIC') {
+                            const routerContract = new ethers.Contract(routerAddress, [
+                                "function pagarNativoDynamic(address destinoLojista) external payable"
+                            ], signer);
+                            
+                            const tx = await routerContract.pagarNativoDynamic(Config.destinoPrincipal, { value: amountInWei });
+                            await tx.wait();
+                            alert("Pagamento em MATIC processado via Roteador com sucesso!");
+                            
+                        } else if (symbol === 'CAMBIO') {
+                            const tokenContract = new ethers.Contract(cambioTokenAddress, [
+                                "function approve(address spender, uint256 amount) external returns (bool)"
+                            ], signer);
+                            
+                            const txApprove = await tokenContract.approve(routerAddress, amountInWei);
+                            await txApprove.wait();
+
+                            const routerContract = new ethers.Contract(routerAddress, [
+                                "function pagarComTokenDynamic(address tokenAddress, uint256 amount, address destinoLojista) external"
+                            ], signer);
+                            
+                            const txPay = await routerContract.pagarComTokenDynamic(cambioTokenAddress, amountInWei, Config.destinoPrincipal);
+                            await txPay.wait();
+                            alert("Pagamento em CAMBIO Token processado via Roteador com sucesso!");
+                            
+                        } else {
+                            const amountPrincipal = (totalAmount * 0.99).toFixed(6);
+                            const amountComissao = (totalAmount * 0.01).toFixed(6);
+
+                            await signer.sendTransaction({ to: Config.destinoPrincipal, value: ethers.parseEther(amountPrincipal) });
+                            await signer.sendTransaction({ to: Config.comissaoWallet, value: ethers.parseEther(amountComissao) });
+                            alert("Pagamento direto processado com sucesso!");
+                        }
+                    } catch(e) { 
+                        console.error(e);
+                        alert("Transação cancelada ou falhou no processamento."); 
+                    }
+                },
+                
+                gerarQR: () => {
+                    if(State.valorBRL === 0) return alert("Insira um valor no teclado primeiro.");
+                    
+                    document.getElementById('qr-modal').style.display = 'flex';
+                    document.getElementById('qrcode').innerHTML = ''; 
+
+                    const totalBrl = State.valorBRL / 100;
+                    const totalAmount = totalBrl / 3000;
+                    const amountPrincipal = (totalAmount * 0.99).toFixed(6);
+
+                    const eipUri = `ethereum:${Config.destinoPrincipal}?value=${amountPrincipal}`;
+
+                    State.qrInstance = new QRCode(document.getElementById("qrcode"), {
+                        text: eipUri,
+                        width: 180,
+                        height: 180,
+                        colorDark : "#000000",
+                        colorLight : "#ffffff",
+                        correctLevel : QRCode.CorrectLevel.H
+                    });
+
+                    document.getElementById('qr-info').innerText = `Valor líquido estimado: ~ ${amountPrincipal} CRYPTO`;
+                },
+                fecharQR: () => {
+                    document.getElementById('qr-modal').style.display = 'none';
+                    document.getElementById('qrcode').innerHTML = '';
+                }
+            },
+            ERP: { exportarExcel: () => alert("Exportando relatório...") },
+            Hardware: { printReceipt: () => alert("Impressora pronta."), readNFC: () => alert("Aproxime o cartão.") },
+            Menu: {
+                abrirDashboard: () => { 
+                    document.getElementById('config-principal').value = Config.destinoPrincipal;
+                    document.getElementById('config-comissao').value = Config.comissaoWallet;
+                    document.getElementById('toggle-autoconnect').checked = Config.autoConnect;
+                    document.getElementById('dashboard').style.display = 'flex'; 
+                },
+                salvarConfiguracoes: () => {
+                    const addr1 = document.getElementById('config-principal').value;
+                    const addr2 = document.getElementById('config-comissao').value;
+                    if(!addr1.startsWith("0x") || !addr2.startsWith("0x")) return alert("Verifique os endereços.");
+                    Config.destinoPrincipal = addr1;
+                    Config.comissaoWallet = addr2;
+                    localStorage.setItem('cfg_principal', addr1);
+                    localStorage.setItem('cfg_comissao', addr2);
+                    alert("Configurações aplicadas!");
+                },
+                toggleAutoConnect: () => {
+                    const isChecked = document.getElementById('toggle-autoconnect').checked;
+                    Config.autoConnect = isChecked;
+                    localStorage.setItem('cfg_autoconnect', isChecked);
+                },
+                toggleManual: () => { const m = document.getElementById('manual-modal'); m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; }
             }
-        } catch (error) {
-            console.error(error);
-            statusDiv.innerText = "Erro na transação. Verifique o console.";
-            statusDiv.style.color = "red";
-        }
-    });
-</script>
-
+        };
+    </script>
 </body>
 </html>
