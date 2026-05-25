@@ -6,51 +6,53 @@
     <title>COINPAY TERMINAL | PRO</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root { --bg: #02040a; --neon: #00ff88; --panel: #0d1117; }
-        body { background: var(--bg); color: #fff; font-family: monospace; }
+        body { background: var(--bg); color: #fff; font-family: 'Courier New', Courier, monospace; }
         .glass { background: var(--panel); border: 1px solid #30363d; border-radius: 12px; }
         .btn-pay { background: var(--neon); color: #000; font-weight: bold; width: 100%; padding: 20px; border-radius: 8px; }
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; align-items: center; justify-content: center; }
+        button { transition: 0.2s; }
+        button:active { transform: scale(0.98); }
     </style>
 </head>
-<body class="p-4">
+<body class="p-4 flex flex-col items-center min-h-screen">
 
-    <header class="max-w-md mx-auto flex justify-between items-center mb-6">
-        <h1 class="text-lg font-bold">COINPAY <span style="color:var(--neon)">TERMINAL</span></h1>
+    <header class="w-full max-w-sm flex justify-between items-center mb-6">
+        <h1 class="text-sm font-bold">COINPAY <span style="color:var(--neon)">TERMINAL</span></h1>
         <button id="btn-connect" onclick="App.connect()" class="text-[10px] border border-green-500 px-3 py-1 rounded">CONECTAR</button>
     </header>
 
-    <main class="max-w-md mx-auto glass p-6">
-        <div id="visor" class="text-right text-4xl mb-6 text-green-400">R$ 0,00</div>
+    <main class="w-full max-w-sm glass p-6">
+        <div id="visor" class="text-right text-5xl mb-6 text-green-400">R$ 0,00</div>
         <div class="grid grid-cols-3 gap-2 mb-4">
-            <button onclick="App.numpad(1)">1</button><button onclick="App.numpad(2)">2</button><button onclick="App.numpad(3)">3</button>
-            <button onclick="App.numpad(4)">4</button><button onclick="App.numpad(5)">5</button><button onclick="App.numpad(6)">6</button>
-            <button onclick="App.numpad(7)">7</button><button onclick="App.numpad(8)">8</button><button onclick="App.numpad(9)">9</button>
-            <button onclick="App.clear()">C</button><button onclick="App.numpad(0)">0</button><button onclick="App.backspace()">⌫</button>
+            <button onclick="App.numpad(1)" class="p-4 bg-gray-800 rounded">1</button><button onclick="App.numpad(2)" class="p-4 bg-gray-800 rounded">2</button><button onclick="App.numpad(3)" class="p-4 bg-gray-800 rounded">3</button>
+            <button onclick="App.numpad(4)" class="p-4 bg-gray-800 rounded">4</button><button onclick="App.numpad(5)" class="p-4 bg-gray-800 rounded">5</button><button onclick="App.numpad(6)" class="p-4 bg-gray-800 rounded">6</button>
+            <button onclick="App.numpad(7)" class="p-4 bg-gray-800 rounded">7</button><button onclick="App.numpad(8)" class="p-4 bg-gray-800 rounded">8</button><button onclick="App.numpad(9)" class="p-4 bg-gray-800 rounded">9</button>
+            <button onclick="App.clear()" class="p-4 bg-red-900 rounded">C</button><button onclick="App.numpad(0)" class="p-4 bg-gray-800 rounded">0</button><button onclick="App.backspace()" class="p-4 bg-gray-800 rounded">⌫</button>
         </div>
         <button class="btn-pay" onclick="App.process()">PROCESSAR PAGAMENTO</button>
     </main>
 
-    <div id="config" class="max-w-md mx-auto mt-6 text-[10px]">
-        <input type="text" id="wallet-lojista" placeholder="Endereço do Lojista" class="w-full bg-black p-2 border border-gray-700">
-        <button onclick="App.save()" class="mt-2 text-green-500">SALVAR CARTEIRA</button>
-    </div>
-
     <script>
         const App = {
             valor: 0,
-            address: localStorage.getItem('cfg_wallet') || "",
 
-            // Conexão unificada (MetaMask e TrustWallet)
+            // Redirecionamento Universal para App de Carteira
+            openInApp: () => {
+                const currentUrl = window.location.href;
+                const dAppUrl = currentUrl.replace(/^https?:\/\//, '');
+                window.location.href = `https://metamask.app.link/dapp/${dAppUrl}`;
+            },
+
             connect: async () => {
-                if (!window.ethereum) return alert("Use o navegador da sua carteira (MetaMask/Trust).");
+                if (!window.ethereum) {
+                    App.openInApp(); // Se não tem carteira injetada, abre o App
+                    return;
+                }
                 try {
                     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    App.address = accounts[0];
-                    document.getElementById('btn-connect').innerText = App.address.slice(0,6) + "...";
-                } catch(e) { alert("Erro de conexão."); }
+                    document.getElementById('btn-connect').innerText = accounts[0].slice(0,6) + "...";
+                } catch(e) { alert("Conexão cancelada."); }
             },
 
             numpad: (n) => { App.valor = (App.valor * 10) + n; App.update(); },
@@ -59,27 +61,27 @@
             update: () => { document.getElementById('visor').innerText = "R$ " + (App.valor/100).toFixed(2).replace('.', ','); },
 
             process: async () => {
-                if(!App.address) await App.connect();
-                // Aqui chamamos o seu contrato:
-                const provider = new ethers.BrowserProvider(window.ethereum);
-                const signer = await provider.getSigner();
+                // 1. Verifica se está no celular sem carteira
+                if (!window.ethereum) {
+                    App.openInApp();
+                    return;
+                }
+                
+                // 2. Garante conexão
+                await App.connect();
+                
+                // 3. Executa a lógica de chamada do Contrato
                 alert("Redirecionando para assinatura na carteira...");
-            },
-
-            save: () => {
-                const addr = document.getElementById('wallet-lojista').value;
-                localStorage.setItem('cfg_wallet', addr);
-                alert("Carteira salva!");
             }
         };
 
-        // Conexão Automática ao carregar
+        // Auto-conectar ao abrir se já houver permissão
         window.onload = async () => {
-            document.getElementById('wallet-lojista').value = App.address;
             if (window.ethereum) {
-                // Tenta conectar silenciosamente se já houver permissão
                 const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-                if (accounts.length > 0) App.connect();
+                if (accounts.length > 0) {
+                    document.getElementById('btn-connect').innerText = accounts[0].slice(0,6) + "...";
+                }
             }
         };
     </script>
