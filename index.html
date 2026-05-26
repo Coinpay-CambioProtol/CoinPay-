@@ -3,165 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CoinPay Crypto POS</title>
+    <title>COINPAY GLOBAL TERMINAL</title>
     <script src="https://tailwindcss.com"></script>
-    <link rel="preconnect" href="https://googleapis.com">
-    <link rel="preconnect" href="https://gstatic.com" crossorigin>
-    <link href="https://googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
     <script src="https://cloudflare.com"></script>
     <script src="https://cloudflare.com"></script>
-
     <style>
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
-        }
-        .font-pos {
-            font-family: 'JetBrains Mono', monospace;
-        }
-        /* Visual do Hardware da Maquininha */
-        .pos-hardware {
-            background: linear-gradient(180deg, #2c3545 0%, #181e29 100%);
-            border: 4px solid #3d485c;
-            box-shadow: 
-                0 30px 60px -15px rgba(0,0,0,0.8),
-                inset 0 2px 4px rgba(255,255,255,0.1);
-        }
-        /* Tela de Cristal Líquido / OLED da Maquininha */
-        .pos-screen {
-            background: #040811;
-            border: 3px solid #131924;
-            box-shadow: inset 0 3px 10px rgba(0,0,0,0.9);
-        }
-        /* Botões Físicos Embutidos */
-        .pos-btn {
-            background: linear-gradient(180deg, #222936 0%, #151a24 100%);
-            border: 1px solid #2e384d;
-            box-shadow: 
-                0 4px 0 #0d1118,
-                0 5px 10px rgba(0,0,0,0.5),
-                inset 0 1px 1px rgba(255,255,255,0.05);
-            transition: all 0.1s ease;
-        }
-        .pos-btn:active {
-            transform: translateY(3px);
-            box-shadow: 
-                0 1px 0 #0d1118,
-                0 2px 5px rgba(0,0,0,0.5);
-        }
-        .pos-btn-action {
-            box-shadow: 0 4px 0 var(--shadow-color), 0 5px 10px rgba(0,0,0,0.5);
-        }
-        .pos-btn-action:active {
-            transform: translateY(3px);
-            box-shadow: 0 1px 0 var(--shadow-color), 0 2px 5px rgba(0,0,0,0.5);
-        }
-        #qrcode img {
-            margin: 0 auto;
-            background: #fff;
-            padding: 8px;
-            border-radius: 8px;
-        }
+        :root { --bg: #02040a; --neon: #00ff88; --panel: #0d1117; }
+        body { background: var(--bg); color: #fff; font-family: monospace; }
+        .glass { background: var(--panel); border: 1px solid #30363d; border-radius: 12px; }
+        .btn-pay { background: var(--neon); color: #000; font-weight: bold; width: 100%; padding: 16px; border-radius: 8px; }
+        .btn-secondary { background: #21262d; border: 1px solid #30363d; color: #fff; width: 100%; padding: 12px; border-radius: 8px; font-size: 0.875rem; }
+        #qrcode img { margin: 0 auto; background: #fff; padding: 10px; border-radius: 8px; }
     </style>
 </head>
-<body class="p-4 flex flex-col items-center min-h-screen justify-center antialiased">
+<body class="p-4 flex flex-col items-center min-h-screen justify-center">
 
-    <!-- CORPO DA MAQUININHA (HARDWARE) -->
-    <div class="w-full max-w-[360px] pos-hardware rounded-[40px] p-5 flex flex-col relative select-none">
+    <section id="config-container" class="w-full max-w-sm glass p-6 hidden text-center">
+        <div class="flex items-center justify-center gap-2 mb-2">
+            <span class="text-xl">⚙️</span>
+            <h2 class="text-sm font-bold tracking-wider text-green-400">CONFIGURAÇÃO DO TERMINAL</h2>
+        </div>
+        <p class="text-xs text-gray-400 mb-6">Insira a carteira que receberá os pagamentos automáticos neste dispositivo.</p>
+        <div class="mb-6 text-left">
+            <label class="text-[10px] uppercase text-gray-500 font-bold block mb-2">Sua Carteira de Recebimento</label>
+            <input type="text" id="input-wallet" placeholder="0x..." class="w-full bg-black border border-gray-700 p-3 rounded text-xs text-white focus:outline-none focus:border-green-400 text-center font-mono">
+        </div>
+        <button class="btn-pay mb-3" onclick="App.salvarCarteiraLojista()">ATIVAR TERMINAL</button>
+    </section>
+
+    <main id="terminal-container" class="w-full max-w-sm glass p-6 hidden">
+        <header class="flex justify-between items-center mb-6">
+            <div class="flex items-center gap-2">
+                <button onclick="App.abrirConfiguracao()" class="text-gray-400 hover:text-white text-xl">⚙️</button>
+                <h1 class="text-sm font-bold tracking-wide">COINPAY <span style="color:var(--neon)">TERMINAL</span></h1>
+            </div>
+            <select id="moeda" onchange="App.update()" class="bg-black border border-gray-700 text-xs p-1 rounded text-white focus:outline-none">
+                <option value="USDT">USDT</option>
+                <option value="USDC">USDC</option>
+                <option value="BRL">BRL</option>
+            </select>
+        </header>
+
+        <div id="visor" class="text-right text-4xl mb-6 text-green-400 font-bold tracking-tight">USDT 0,00</div>
         
-        <!-- Slot Superior de Tarjeta / Sensor NFC -->
-        <div class="w-2/3 h-1 bg-[#151a24] mx-auto mb-4 rounded-full opacity-60 shadow-inner"></div>
-        <div class="text-[9px] text-center text-slate-500 font-bold tracking-widest uppercase mb-3 flex items-center justify-center gap-1">
-            <span>☷</span> COINPAY GLOBAL POS <span>☷</span>
+        <div class="grid grid-cols-3 gap-2 mb-4">
+            <button onclick="App.numpad(1)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">1</button>
+            <button onclick="App.numpad(2)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">2</button>
+            <button onclick="App.numpad(3)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">3</button>
+            <button onclick="App.numpad(4)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">4</button>
+            <button onclick="App.numpad(5)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">5</button>
+            <button onclick="App.numpad(6)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">6</button>
+            <button onclick="App.numpad(7)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">7</button>
+            <button onclick="App.numpad(8)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">8</button>
+            <button onclick="App.numpad(9)" class="p-4 bg-gray-900 hover:bg-gray-700 rounded text-xl">9</button>
+            <button onclick="App.clear()" class="p-4 bg-red-950 text-red-400 hover:bg-red-900 rounded text-xl font-bold">C</button>
+            <button onclick="App.numpad(0)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">0</button>
+            <button onclick="App.backspace()" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">⌫</button>
         </div>
+        
+        <button class="btn-pay" onclick="App.gerarCobranca()">GERAR COBRANÇA (QR CODE)</button>
+    </main>
 
-        <!-- TELA DO DISPOSITIVO -->
-        <div class="pos-screen rounded-2xl p-4 min-h-[260px] flex flex-col justify-between mb-5 relative overflow-hidden">
-            
-            <!-- TELA 1: CONFIGURAÇÃO DO LOJISTA -->
-            <section id="config-container" class="hidden h-full flex flex-col justify-between text-center py-2">
-                <div>
-                    <div class="text-amber-400 text-xs font-bold font-pos mb-1">[ CONFIGURAÇÃO ]</div>
-                    <p class="text-[10px] text-slate-400 font-pos">Insira a carteira EVM destino:</p>
-                </div>
-                <div class="my-4">
-                    <input type="text" id="input-wallet" placeholder="0x..." class="w-full bg-slate-900 border border-slate-800 p-2.5 rounded text-[11px] text-center text-white font-pos focus:outline-none focus:border-amber-500">
-                </div>
-                <div class="text-[10px] text-slate-500 font-pos animate-pulse">Aperte ATIVAR no teclado abaixo</div>
-            </section>
-
-            <!-- TELA 2: VISOR PRINCIPAL (DIGITAÇÃO DO VALOR) -->
-            <main id="terminal-container" class="hidden h-full flex flex-col justify-between">
-                <div class="flex justify-between items-center border-b border-slate-900 pb-2">
-                    <button onclick="App.abrirConfiguracao()" class="text-[11px] text-slate-500 hover:text-slate-300 font-pos">⚙️ Menu</button>
-                    <select id="moeda" onchange="App.update()" class="bg-slate-900 border border-slate-800 text-[10px] px-2 py-0.5 rounded text-emerald-400 font-pos font-bold focus:outline-none cursor-pointer">
-                        <option value="USDT">USDT</option>
-                        <option value="USDC">USDC</option>
-                        <option value="BRL">BRL</option>
-                    </select>
-                </div>
-                <div class="text-right py-6">
-                    <span class="text-[10px] text-slate-500 font-pos block uppercase tracking-wider">Valor da Venda</span>
-                    <div id="visor" class="text-3xl font-bold text-emerald-400 font-pos mt-1 tracking-tight">USDT 0,00</div>
-                </div>
-                <div class="text-center text-[9px] text-slate-500 font-pos tracking-wide animate-pulse">
-                    Insira o valor e aperte CONFIRMA
-                </div>
-            </main>
-
-            <!-- TELA 3: PAGAMENTO POR QR CODE -->
-            <section id="checkout-container" class="hidden h-full flex flex-col justify-between text-center">
-                <div class="text-emerald-400 text-[10px] font-bold font-pos tracking-wider uppercase">Aguardando Cripto...</div>
-                <div id="cobranca-valores" class="text-lg font-bold text-white font-pos my-1">0,00</div>
-                
-                <div id="qrcode" class="flex justify-center my-1 scale-95"></div>
-                
-                <div class="flex gap-1 justify-center">
-                    <button onclick="App.compartilhar('whatsapp')" class="text-[9px] bg-slate-900 text-slate-300 px-2 py-1 rounded border border-slate-800 hover:text-white">Zap</button>
-                    <button onclick="App.copiarLink()" class="text-[9px] bg-slate-900 text-slate-300 px-2 py-1 rounded border border-slate-800 hover:text-white">Copiar</button>
-                    <button onclick="App.voltarAoTerminal()" class="text-[9px] bg-rose-950/40 text-rose-400 px-2 py-1 rounded border border-rose-900/30">Cancelar</button>
-                </div>
-            </section>
-
-            <!-- TELA 4: GATEWAY DE PROCESSAMENTO -->
-            <section id="payer-container" class="hidden h-full flex flex-col justify-between text-center py-4">
-                <div id="payer-loading-content" class="space-y-4">
-                    <div class="text-slate-400 text-[10px] font-pos uppercase tracking-widest animate-pulse">Conectando Rede...</div>
-                    <div id="payer-val" class="text-2xl font-bold text-emerald-400 font-pos">0,00</div>
-                    <div class="text-[9px] text-slate-500 font-pos bg-slate-950 p-2 rounded break-all" id="payer-dest"></div>
-                    <p class="text-[10px] text-slate-400 px-2 leading-tight">Autorize a transação na sua carteira Web3 conectada.</p>
-                </div>
-                <div id="payer-result-content" class="hidden flex flex-col items-center justify-center h-full space-y-2"></div>
-            </section>
-
+    <section id="checkout-container" class="w-full max-w-sm glass p-6 hidden text-center">
+        <h2 class="text-sm font-bold mb-2 tracking-wider">ESCANEIE PARA PAGAR</h2>
+        <div id="cobranca-valores" class="text-2xl text-green-400 font-bold mb-4">0,00</div>
+        
+        <div id="qrcode" class="flex justify-center mb-6"></div>
+        
+        <div class="space-y-2">
+            <button onclick="App.compartilhar('whatsapp')" class="w-full bg-green-600 hover:bg-green-700 text-white p-3 rounded font-bold text-sm">Compartilhar no WhatsApp</button>
+            <button onclick="App.compartilhar('telegram')" class="w-full bg-blue-500 hover:bg-blue-600 text-white p-3 rounded font-bold text-sm">Compartilhar no Telegram</button>
+            <button onclick="App.copiarLink()" class="btn-secondary">Copiar Link Direto</button>
+            <button onclick="App.voltarAoTerminal()" class="text-xs text-gray-400 underline pt-2 block mx-auto">Voltar ao Terminal</button>
         </div>
+    </section>
 
-        <!-- TECLADO FÍSICO DA MAQUININHA -->
-        <div class="grid grid-cols-3 gap-3 p-1 font-pos">
-            <button onclick="App.numpad(1)" class="pos-btn py-3 rounded-xl text-lg font-bold text-slate-300">1</button>
-            <button onclick="App.numpad(2)" class="pos-btn py-3 rounded-xl text-lg font-bold text-slate-300">2</button>
-            <button onclick="App.numpad(3)" class="pos-btn py-3 rounded-xl text-lg font-bold text-slate-300">3</button>
+    <section id="payer-container" class="w-full max-w-sm glass p-6 hidden text-center animate-pulse">
+        <h2 class="text-xs tracking-widest text-gray-400 uppercase mb-2">COINPAY GATEWAY</h2>
+        <div class="text-sm font-bold mb-4">PROCESSANDO PAGAMENTO</div>
+        <div id="payer-val" class="text-3xl text-green-400 font-bold mb-2">0,00</div>
+        <p class="text-[11px] text-gray-500 font-mono mb-6 break-all" id="payer-dest"></p>
+        <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-green-400 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
+        <p class="text-xs text-gray-400 mt-4">Confirme a transação na janela flutuante da sua carteira...</p>
+    </section>
+
+    <script>
+        const CONTRACT_ADDRESS = "0x79ce1969be43f738a6d05c89e2bd73d39b009b1c";
+        const CONTRACT_ABI = [
+            {
+                "inputs": [
+                    { "internalType": "address", "name": "recipient", "type": "address" },
+                    { "internalType": "uint256", "name": "amount", "type": "uint256" }
+                ],
+                "name": "transfer",
+                "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
+        ];
+
+        let qrcodeInstance = null;
+
+        const App = {
+            valorCentavos: 0,
+            walletLojista: "",
             
-            <button onclick="App.numpad(4)" class="pos-btn py-3 rounded-xl text-lg font-bold text-slate-300">4</button>
-            <button onclick="App.numpad(5)" class="pos-btn py-3 rounded-xl text-lg font-bold text-slate-300">5</button>
-            <button onclick="App.numpad(6)" class="pos-btn py-3 rounded-xl text-lg font-bold text-slate-300">6</button>
-            
-            <button onclick="App.numpad(7)" class="pos-btn py-3 rounded-xl text-lg font-bold text-slate-300">7</button>
-            <button onclick="App.numpad(8)" class="pos-btn py-3 rounded-xl text-lg font-bold text-slate-300">8</button>
-            <button onclick="App.numpad(9)" class="pos-btn py-3 rounded-xl text-lg font-bold text-slate-300">9</button>
-            
-            <!-- Botão ANULA (Vermelho) -->
-            <button id="btn-cancel" onclick="App.clear()" style="--shadow-color: #5c1d24" class="pos-btn-action py-3 bg-rose-700 border border-rose-600 hover:bg-rose-600 rounded-xl text-xs font-bold text-white uppercase tracking-wider">Anula</button>
-            <button onclick="App.numpad(0)" class="pos-btn py-3 rounded-xl text-lg font-bold text-slate-300">0</button>
-            <!-- Botão CORRIGE (Amarelo) -->
-            <button onclick="App.backspace()" style="--shadow-color: #614615" class="pos-btn-action py-3 bg-amber-500 border border-amber-400 hover:bg-amber-400 rounded-xl text-xs font-bold text-slate-950 uppercase tracking-wider">Corrige</button>
-        </div>
+            init: () => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const val = urlParams.get('v');
+                const m = urlParams.get('m');
+                const dest = urlParams.get('dest');
 
-        <!-- Botão CONFIRMA Grande (Verde) -->
-        <div class="mt-3 px-1">
-            <button id="btn-confirm" onclick="App.acaoBotaoVerde()" style="--shadow-color: #145c32" class="pos-btn-action w-full py-4 bg-emerald-600 border border-emerald-500 hover:bg-emerald-500 rounded-xl text-sm font-bold text-slate-950 uppercase tracking-widest">Confirma</button>
-        </div>
+                if (dest && val) {
+                    App.walletLojista = dest;
+                    document.getElementById('payer-val').innerText = `${m} ${parseFloat(val).toFixed(2)}`;
+                    document.getElementById('payer-dest').innerText = `Para: ${dest}`;
+                    App.esconderTelas();
+                    document.getElementById('payer-container').classList.remove('hidden');
+                    
+                    setTimeout(() => { App.executarPagamentoCliente(val); }, 1000);
+                    return;
+                }
 
-    </div>
+                App.walletLojista = localStorage.getItem('coinpay_wallet') || "";
+                if (!App.walletLojista) {
+                    App.abrirConfiguracao();
+                } else {
+                    App.voltarAoTerminal();
+                }
+            },
 
-    <!-- LOGICA JAVASCRIPT INTEGRADA -->
+            abrirConfiguracao: () => {
+                App.esconderTelas();
+                document.getElementById('input-wallet').value = App.walletLojista;
+                document.getElementById('config-container').classList.remove('hidden');
+            },
+
+            salvarCarteiraLojista: () => {
+                const wallet = document.getElementById('input-wallet').value.trim();
+                if (!/^0x[a-fA-F0-9]{40}$/.test(wallet)) {
+                    alert("Por favor, insira um endereço EVM válido.");
+                    return;
+                }
+                localStorage.setItem('coinpay_wallet', wallet);
+                App.walletLojista = wallet;
+                App.voltarAoTerminal();
+            },
+
+            voltarAoTerminal: () => {
+                App.esconderTelas();
+                App.clear();
+                document.getElementById('terminal-container').classList.remove('hidden');
+            },
+
+            numpad: (num) => {
+                if (App.valorCentavos >= 99999999) return;
+                App.valorCentavos = (App.valorCentavos * 10) + num;
+                App.updateVisor();
+            },
+
+            clear: () => {
+                App.valorCentavos = 0;
+                App.updateVisor();
+            },
+
+            backspace: () => {
+                App.valorCentavos = Math.floor(App.valorCentavos / 10);
+                App.updateVisor();
+            },
+
+            updateVisor: () => {
+                const moeda = document.getElementById('moeda').value;
+                const valorFinal = (App.valorCentavos / 100).toFixed(2);
+                document.getElementById('visor').innerText = `${moeda} ${valorFinal}`;
+            },
+
+            update: () => {
+                App.updateVisor();
+            },
+
+            gerarLinkCobranca: () => {
+    
