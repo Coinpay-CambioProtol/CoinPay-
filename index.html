@@ -3,175 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COINPAY GLOBAL TERMINAL</title>
+    <title>CoinPay Global Terminal</title>
+    <!-- Tailwind CSS para Estilização Moderna -->
     <script src="https://tailwindcss.com"></script>
+    <!-- Fontes do Google para um Look Premium -->
+    <link rel="preconnect" href="https://googleapis.com">
+    <link rel="preconnect" href="https://gstatic.com" crossorigin>
+    <link href="https://googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Bibliotecas Web3 e QR Code -->
     <script src="https://cloudflare.com"></script>
     <script src="https://cloudflare.com"></script>
+
     <style>
-        :root { --bg: #02040a; --neon: #00ff88; --panel: #0d1117; }
-        body { background: var(--bg); color: #fff; font-family: monospace; }
-        .glass { background: var(--panel); border: 1px solid #30363d; border-radius: 12px; }
-        .btn-pay { background: var(--neon); color: #000; font-weight: bold; width: 100%; padding: 16px; border-radius: 8px; }
-        .btn-secondary { background: #21262d; border: 1px solid #30363d; color: #fff; width: 100%; padding: 12px; border-radius: 8px; font-size: 0.875rem; }
-        #qrcode img { margin: 0 auto; background: #fff; padding: 10px; border-radius: 8px; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #070a13 0%, #0d1527 100%);
+        }
+        .font-mono-custom {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .glass-card {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        }
+        .btn-neon {
+            background: linear-gradient(135deg, #00ff87 0%, #60efff 100%);
+            color: #060b13;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-neon:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 255, 135, 0.35);
+        }
+        .btn-numpad {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.2s ease;
+        }
+        .btn-numpad:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        #qrcode img {
+            margin: 0 auto;
+            background: #fff;
+            padding: 14px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
     </style>
 </head>
-<body class="p-4 flex flex-col items-center min-h-screen justify-center">
+<body class="p-4 flex flex-col items-center min-h-screen justify-center antialiased text-slate-100">
 
-    <!-- TELA 1: CONFIGURAÇÃO DO LOJISTA -->
-    <section id="config-container" class="w-full max-w-sm glass p-6 hidden text-center">
-        <div class="flex items-center justify-center gap-2 mb-2">
-            <span class="text-xl">⚙️</span>
-            <h2 class="text-sm font-bold tracking-wider text-green-400">CONFIGURAÇÃO DO TERMINAL</h2>
-        </div>
-        <p class="text-xs text-gray-400 mb-6">Insira a carteira que receberá os pagamentos automáticos neste dispositivo.</p>
-        <div class="mb-6 text-left">
-            <label class="text-[10px] uppercase text-gray-500 font-bold block mb-2">Sua Carteira de Recebimento</label>
-            <input type="text" id="input-wallet" placeholder="0x..." class="w-full bg-black border border-gray-700 p-3 rounded text-xs text-white focus:outline-none focus:border-green-400 text-center font-mono">
-        </div>
-        <button class="btn-pay mb-3" onclick="App.salvarCarteiraLojista()">ATIVAR TERMINAL</button>
-    </section>
+    <!-- CONTAINER PRINCIPAL CENTRALIZADO -->
+    <div class="w-full max-w-md">
 
-    <!-- TELA 2: OPERAÇÃO DO TERMINAL (PDV) -->
-    <main id="terminal-container" class="w-full max-w-sm glass p-6 hidden">
-        <header class="flex justify-between items-center mb-6">
-            <div class="flex items-center gap-2">
-                <button onclick="App.abrirConfiguracao()" class="text-gray-400 hover:text-white text-xl">⚙️</button>
-                <h1 class="text-sm font-bold tracking-wide">COINPAY <span style="color:var(--neon)">TERMINAL</span></h1>
+        <!-- TELA 1: CONFIGURAÇÃO DO LOJISTA -->
+        <section id="config-container" class="glass-card rounded-2xl p-8 hidden text-center">
+            <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-emerald-500/10 text-emerald-400 mb-4 border border-emerald-500/20">
+                <svg xmlns="http://w3.org" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
             </div>
-            <select id="moeda" onchange="App.update()" class="bg-black border border-gray-700 text-xs p-1 rounded text-white focus:outline-none">
-                <option value="USDT">USDT</option>
-                <option value="USDC">USDC</option>
-                <option value="BRL">BRL</option>
-            </select>
-        </header>
-
-        <div id="visor" class="text-right text-4xl mb-6 text-green-400 font-bold tracking-tight">USDT 0,00</div>
-        
-        <div class="grid grid-cols-3 gap-2 mb-4">
-            <button onclick="App.numpad(1)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">1</button>
-            <button onclick="App.numpad(2)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">2</button>
-            <button onclick="App.numpad(3)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">3</button>
-            <button onclick="App.numpad(4)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">4</button>
-            <button onclick="App.numpad(5)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">5</button>
-            <button onclick="App.numpad(6)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">6</button>
-            <button onclick="App.numpad(7)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">7</button>
-            <button onclick="App.numpad(8)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">8</button>
-            <button onclick="App.numpad(9)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">9</button>
-            <button onclick="App.clear()" class="p-4 bg-red-950 text-red-400 hover:bg-red-900 rounded text-xl font-bold">C</button>
-            <button onclick="App.numpad(0)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">0</button>
-            <button onclick="App.backspace()" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">⌫</button>
-        </div>
-        
-        <button class="btn-pay" onclick="App.gerarCobranca()">GERAR COBRANÇA (QR CODE)</button>
-    </main>
-
-    <!-- TELA 3: CHECKOUT (QR CODE GERADO) -->
-    <section id="checkout-container" class="w-full max-w-sm glass p-6 hidden text-center">
-        <h2 class="text-sm font-bold mb-2 tracking-wider">ESCANEIE PARA PAGAR</h2>
-        <div id="cobranca-valores" class="text-2xl text-green-400 font-bold mb-4">0,00</div>
-        
-        <div id="qrcode" class="flex justify-center mb-6"></div>
-        
-        <div class="space-y-2">
-            <button onclick="App.compartilhar('whatsapp')" class="w-full bg-green-600 hover:bg-green-700 text-white p-3 rounded font-bold text-sm">Compartilhar no WhatsApp</button>
-            <button onclick="App.compartilhar('telegram')" class="w-full bg-blue-500 hover:bg-blue-600 text-white p-3 rounded font-bold text-sm">Compartilhar no Telegram</button>
-            <button onclick="App.copiarLink()" class="btn-secondary">Copiar Link Direto</button>
-            <button onclick="App.voltarAoTerminal()" class="text-xs text-gray-400 underline pt-2 block mx-auto">Voltar ao Terminal</button>
-        </div>
-    </section>
-
-    <!-- TELA 4: GATEWAY INTERFACE DO CLIENTE (PAGADOR) -->
-    <section id="payer-container" class="w-full max-w-sm glass p-6 hidden text-center">
-        <div id="payer-loading-content" class="animate-pulse">
-            <h2 class="text-xs tracking-widest text-gray-400 uppercase mb-2">COINPAY GATEWAY</h2>
-            <div class="text-sm font-bold mb-4">PROCESSANDO PAGAMENTO</div>
-            <div id="payer-val" class="text-3xl text-green-400 font-bold mb-2">0,00</div>
-            <p class="text-[11px] text-gray-500 font-mono mb-6 break-all" id="payer-dest"></p>
-            <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-green-400 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
-            <p class="text-xs text-gray-400 mt-4">Confirme a transação na janela flutuante da sua carteira...</p>
-        </div>
-        <div id="payer-result-content" class="hidden"></div>
-    </section>
-
-    <!-- LÓGICA JAVASCRIPT UNIFICADA -->
-    <script>
-        // Endereço padrão do token ERC20 (Ajuste para a sua rede de preferência)
-        const CONTRACT_ADDRESS = "0x79ce1969be43f738a6d05c89e2bd73d39b009b1c";
-        const CONTRACT_ABI = [
-            {
-                "inputs": [
-                    { "internalType": "address", "name": "recipient", "type": "address" },
-                    { "internalType": "uint256", "name": "amount", "type": "uint256" }
-                ],
-                "name": "transfer",
-                "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
-                "stateMutability": "nonpayable",
-                "type": "function"
-            }
-        ];
-
-        let qrcodeInstance = null;
-
-        const App = {
-            valorCentavos: 0,
-            walletLojista: "",
+            <h2 class="text-xl font-bold tracking-tight text-white mb-2">Configurar Terminal</h2>
+            <p class="text-sm text-slate-400 mb-6 px-4">Insira o endereço da sua carteira EVM para receber pagamentos diretos.</p>
             
-            init: () => {
-                const urlParams = new URLSearchParams(window.location.search);
-                const val = urlParams.get('v');
-                const m = urlParams.get('m');
-                const dest = urlParams.get('dest');
+            <div class="mb-6 text-left">
+                <label class="text-xs uppercase font-semibold tracking-wider text-slate-400 block mb-2">Sua Carteira de Recebimento</label>
+                <input type="text" id="input-wallet" placeholder="0x..." class="w-full bg-slate-950/80 border border-slate-800 p-4 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500 text-center font-mono-custom tracking-wide placeholder-slate-600 transition-all">
+            </div>
+            <button class="w-full btn-neon font-bold py-4 rounded-xl text-sm uppercase tracking-wider" onclick="App.salvarCarteiraLojista()">Ativar Terminal</button>
+        </section>
 
-                // Se houver parâmetros na URL, entra em modo CLIENTE (PAGADOR)
-                if (dest && val && m) {
-                    App.walletLojista = dest;
-                    document.getElementById('payer-val').innerText = `${m} ${parseFloat(val).toFixed(2)}`;
-                    document.getElementById('payer-dest').innerText = `Para: ${dest}`;
-                    App.esconderTelas();
-                    document.getElementById('payer-container').classList.remove('hidden');
-                    
-                    setTimeout(() => { App.executarPagamentoCliente(val); }, 1500);
-                    return;
-                }
+        <!-- TELA 2: OPERAÇÃO DO TERMINAL (PDV) -->
+        <main id="terminal-container" class="glass-card rounded-2xl p-6 hidden">
+            <header class="flex justify-between items-center mb-6">
+                <div class="flex items-center gap-3">
+                    <button onclick="App.abrirConfiguracao()" class="text-slate-400 hover:text-white p-2 rounded-lg bg-slate-800/40 hover:bg-slate-800 border border-slate-700/30 transition-all">
+                        <svg xmlns="http://w3.org" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    </button>
+                    <h1 class="text-sm font-bold tracking-wider text-slate-300">COINPAY <span class="text-emerald-400">TERMINAL</span></h1>
+                </div>
+                <select id="moeda" onchange="App.update()" class="bg-slate-950 border border-slate-800 text-xs px-3 py-1.5 rounded-lg text-slate-200 focus:outline-none focus:border-emerald-500 font-semibold cursor-pointer">
+                    <option value="USDT">USDT</option>
+                    <option value="USDC">USDC</option>
+                    <option value="BRL">BRL</option>
+                </select>
+            </header>
 
-                // Senão, entra em modo TERMINAL (LOJISTA)
-                App.walletLojista = localStorage.getItem('coinpay_wallet') || "";
-                if (!App.walletLojista) {
-                    App.abrirConfiguracao();
-                } else {
-                    App.voltarAoTerminal();
-                }
-            },
+            <!-- VISOR DIGITAL -->
+            <div class="bg-slate-950/60 border border-slate-900 rounded-xl p-5 mb-6 text-right shadow-inner">
+                <div id="visor" class="text-4xl font-bold tracking-tight text-emerald-400 font-mono-custom">USDT 0,00</div>
+            </div>
+            
+            <!-- TECLADO GRID -->
+            <div class="grid grid-cols-3 gap-3 mb-6 font-mono-custom text-xl font-semibold">
+                <button onclick="App.numpad(1)" class="btn-numpad p-4 rounded-xl text-white">1</button>
+                <button onclick="App.numpad(2)" class="btn-numpad p-4 rounded-xl text-white">2</button>
+                <button onclick="App.numpad(3)" class="btn-numpad p-4 rounded-xl text-white">3</button>
+                <button onclick="App.numpad(4)" class="btn-numpad p-4 rounded-xl text-white">4</button>
+                <button onclick="App.numpad(5)" class="btn-numpad p-4 rounded-xl text-white">5</button>
+                <button onclick="App.numpad(6)" class="btn-numpad p-4 rounded-xl text-white">6</button>
+                <button onclick="App.numpad(7)" class="btn-numpad p-4 rounded-xl text-white">7</button>
+                <button onclick="App.numpad(8)" class="btn-numpad p-4 rounded-xl text-white">8</button>
+                <button onclick="App.numpad(9)" class="btn-numpad p-4 rounded-xl text-white">9</button>
+                <button onclick="App.clear()" class="p-4 bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/20 rounded-xl transition-all">C</button>
+                <button onclick="App.numpad(0)" class="btn-numpad p-4 rounded-xl text-white">0</button>
+                <button onclick="App.backspace()" class="btn-numpad p-4 flex items-center justify-center rounded-xl text-slate-400 hover:text-white">
+                    <svg xmlns="http://w3.org" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414 6.414a2 2 0 001.414.586H19a2 2 0 002-2V7a2 2 0 00-2-2h-8.172a2 2 0 00-1.414.586L3 12z"/></svg>
+                </button>
+            </div>
+            
+            <button class="w-full btn-neon font-bold py-4 rounded-xl text-sm uppercase tracking-wider" onclick="App.gerarCobranca()">Gerar QR Code de Cobrança</button>
+        </main>
 
-            abrirConfiguracao: () => {
-                App.esconderTelas();
-                document.getElementById('input-wallet').value = App.walletLojista;
-                document.getElementById('config-container').classList.remove('hidden');
-            },
-
-            salvarCarteiraLojista: () => {
-                const wallet = document.getElementById('input-wallet').value.trim();
-                if (!/^0x[a-fA-F0-9]{40}$/.test(wallet)) {
-                    alert("Por favor, insira um endereço de carteira EVM válido (0x...).");
-                    return;
-                }
-                localStorage.setItem('coinpay_wallet', wallet);
-                App.walletLojista = wallet;
-                App.voltarAoTerminal();
-            },
-
-            voltarAoTerminal: () => {
-                App.esconderTelas();
-                App.clear();
-                document.getElementById('terminal-container').classList.remove('hidden');
-            },
-
-            numpad: (num) => {
-                if (App.valorCentavos >= 99999999) return;
-                App.valorCentavos = (App.valorCentavos * 10) + num;
-                App.updateVisor();
-            },
-
-            clear: () => {
-    
+        <!-- TELA 3: CHECKOUT (QR CODE GERADO) -->
+        <section id="checkout-container" class="glass-card rounded-2xl p-6 hidden text-center">
+            <span class="text-xs font-bold tracking-widest text-emerald-400 uppercase bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20">Aguardando Pagamento</span>
+            <div id="cobranca-valores" class="text-3xl font-bold text-white mt-4 mb-5 font-mono-custom">0,00</div>
+            
+            <div id="qrcode" class="flex justify-center mb-6"></div>
+            
+            <div class="space-y-2.5">
+                <button onclick="App.compartilhar('whatsapp')" class="w-full bg-[#25D366] hover:bg-[#20ba59] text-slate-950 p-3.5 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2">
+                    Enviar via WhatsApp
+                </button>
+                <button onclick="App.compartilhar('telegram')" class="w-full bg-[#0088cc] hover:bg-[#0077b3] text-white p-3.5 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2">
+                    Enviar via Telegram
+                </button>
