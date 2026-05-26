@@ -6,48 +6,73 @@
     <title>COINPAY GLOBAL TERMINAL</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root { --bg: #02040a; --neon: #00ff88; --panel: #0d1117; }
         body { background: var(--bg); color: #fff; font-family: monospace; }
         .glass { background: var(--panel); border: 1px solid #30363d; border-radius: 12px; }
-        .btn-pay { background: var(--neon); color: #000; font-weight: bold; width: 100%; padding: 20px; border-radius: 8px; }
+        .btn-pay { background: var(--neon); color: #000; font-weight: bold; width: 100%; padding: 16px; border-radius: 8px; }
+        .btn-secondary { background: #21262d; border: 1px solid #30363d; color: #fff; width: 100%; padding: 12px; border-radius: 8px; font-size: 0.875rem; }
+        /* Ajuste para garantir que o QR code fique com fundo branco legível */
+        #qrcode img { margin: 0 auto; background: #fff; padding: 10px; border-radius: 8px; }
     </style>
 </head>
-<body class="p-4 flex flex-col items-center min-h-screen">
+<body class="p-4 flex flex-col items-center min-h-screen justify-center">
 
-    <header class="w-full max-w-sm flex justify-between items-center mb-6">
-        <h1 class="text-sm font-bold">COINPAY <span style="color:var(--neon)">TERMINAL</span></h1>
-        <select id="moeda" onchange="App.update()" class="bg-black border border-gray-700 text-xs p-1">
-            <option value="USDT">USDT</option>
-            <option value="USDC">USDC</option>
-            <option value="BRL">BRL (R$)</option>
-        </select>
-    </header>
+    <main id="terminal-container" class="w-full max-w-sm glass p-6">
+        <header class="flex justify-between items-center mb-6">
+            <h1 class="text-sm font-bold">COINPAY <span style="color:var(--neon)">TERMINAL</span></h1>
+            <select id="moeda" onchange="App.update()" class="bg-black border border-gray-700 text-xs p-1 rounded text-white">
+                <option value="USDT">USDT</option>
+                <option value="USDC">USDC</option>
+                <option value="BRL">BRL (R$)</option>
+            </select>
+        </header>
 
-    <main class="w-full max-w-sm glass p-6">
-        <div id="visor" class="text-right text-4xl mb-6 text-green-400">0,00</div>
+        <div id="visor" class="text-right text-4xl mb-6 text-green-400 font-bold">USDT 0,00</div>
+        
         <div class="grid grid-cols-3 gap-2 mb-4">
-            <button onclick="App.numpad(1)" class="p-4 bg-gray-800 rounded">1</button>
-            <button onclick="App.numpad(2)" class="p-4 bg-gray-800 rounded">2</button>
-            <button onclick="App.numpad(3)" class="p-4 bg-gray-800 rounded">3</button>
-            <button onclick="App.numpad(4)" class="p-4 bg-gray-800 rounded">4</button>
-            <button onclick="App.numpad(5)" class="p-4 bg-gray-800 rounded">5</button>
-            <button onclick="App.numpad(6)" class="p-4 bg-gray-800 rounded">6</button>
-            <button onclick="App.numpad(7)" class="p-4 bg-gray-800 rounded">7</button>
-            <button onclick="App.numpad(8)" class="p-4 bg-gray-800 rounded">8</button>
-            <button onclick="App.numpad(9)" class="p-4 bg-gray-900 rounded">9</button>
-            <button onclick="App.clear()" class="p-4 bg-red-900 rounded">C</button>
-            <button onclick="App.numpad(0)" class="p-4 bg-gray-800 rounded">0</button>
-            <button onclick="App.backspace()" class="p-4 bg-gray-800 rounded">⌫</button>
+            <button onclick="App.numpad(1)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl">1</button>
+            <button onclick="App.numpad(2)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl">2</button>
+            <button onclick="App.numpad(3)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl">3</button>
+            <button onclick="App.numpad(4)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl">4</button>
+            <button onclick="App.numpad(5)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl">5</button>
+            <button onclick="App.numpad(6)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl">6</button>
+            <button onclick="App.numpad(7)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl">7</button>
+            <button onclick="App.numpad(8)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl">8</button>
+            <button onclick="App.numpad(9)" class="p-4 bg-gray-900 hover:bg-gray-700 active:bg-gray-600 rounded text-xl">9</button>
+            <button onclick="App.clear()" class="p-4 bg-red-950 text-red-400 hover:bg-red-900 rounded text-xl font-bold">C</button>
+            <button onclick="App.numpad(0)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl">0</button>
+            <button onclick="App.backspace()" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl">⌫</button>
         </div>
-        <button class="btn-pay" onclick="App.process()">PROCESSAR OPERAÇÃO</button>
+        
+        <button class="btn-pay mb-2" onclick="App.process()">PAGAR AGORA (WEB3)</button>
+        <button class="btn-secondary" onclick="App.gerarCobranca()">GERAR COBRANÇA À DISTÂNCIA</button>
     </main>
 
+    <section id="checkout-container" class="w-full max-w-sm glass p-6 hidden text-center">
+        <h2 class="text-sm font-bold mb-2">ESCANEIE PARA PAGAR</h2>
+        <div id="cobranca-valores" class="text-2xl text-green-400 font-bold mb-4">0,00</div>
+        
+        <div id="qrcode" class="flex justify-center mb-6"></div>
+        
+        <div class="space-y-2">
+            <button onclick="App.compartilhar('whatsapp')" class="w-full bg-green-600 hover:bg-green-700 text-white p-3 rounded font-bold text-sm flex items-center justify-center gap-2">
+                Compartilhar no WhatsApp
+            </button>
+            <button onclick="App.compartilhar('telegram')" class="w-full bg-blue-500 hover:bg-blue-600 text-white p-3 rounded font-bold text-sm flex items-center justify-center gap-2">
+                Compartilhar no Telegram
+            </button>
+            <button onclick="App.copiarLink()" class="btn-secondary">Copiar Link de Pagamento</button>
+            <button onclick="App.voltar()" class="text-xs text-gray-400 underline pt-2 block mx-auto">Voltar ao Terminal</button>
+        </div>
+    </section>
+
     <script>
-        // 1. ENDEREÇO DO CONTRATO INTELIGENTE INFORMADO
+        // 1. ENDEREÇO DO CONTRATO DE DESTINO
         const CONTRACT_ADDRESS = "0x79ce1969be43f738a6d05c89e2bd73d39b009b1c";
         
-        // 2. CONFIGURAÇÃO OBRIGATÓRIA: Insira a carteira que vai RECEBER os fundos nesta variável
+        // 2. CONFIGURAÇÃO MANDATÓRIA: Defina a sua carteira administradora que receberá as transferências
         const WALLET_DESTINO = "INSIRA_AQUI_A_SUA_CARTEIRA_DE_DESTINO";
 
         // ABI fornecida integrada ao sistema de chamadas
@@ -65,18 +90,25 @@
             }
         ];
 
+        let qrcodeInstance = null;
+
         const App = {
             valor: 0,
             
             init: () => {
-                // Tenta recuperar parâmetros da URL (útil para links externos e redirecionamentos de apps móveis)
                 const urlParams = new URLSearchParams(window.location.search);
                 const val = urlParams.get('v');
                 const m = urlParams.get('m');
                 
                 if (m) document.getElementById('moeda').value = m;
-                if (val) App.valor = Math.round(parseFloat(val) * 100);
-                App.update();
+                if (val) {
+                    App.valor = Math.round(parseFloat(val) * 100);
+                    App.update();
+                    // Se o cliente abriu o link contendo dados de cobrança prévios, aciona automaticamente a execução Web3
+                    setTimeout(() => { App.process(); }, 500);
+                } else {
+                    App.update();
+                }
             },
 
             numpad: (n) => { App.valor = (App.valor * 10) + n; App.update(); },
@@ -88,59 +120,116 @@
                 document.getElementById('visor').innerText = `${moeda} ${(App.valor/100).toFixed(2)}`; 
             },
 
+            // Retorna a URL customizada que o cliente usará para pagar
+            gerarLinkPagamento: () => {
+                const valorFinal = (App.valor / 100).toString();
+                const moeda = document.getElementById('moeda').value;
+                const urlBase = window.location.href.split('?')[0];
+                return `${urlBase}?v=${valorFinal}&m=${moeda}`;
+            },
+
+            gerarCobranca: () => {
+                if(App.valor === 0) return alert("Digite um valor para gerar cobrança.");
+                
+                const moeda = document.getElementById('moeda').value;
+                const valorExibicao = `${moeda} ${(App.valor/100).toFixed(2)}`;
+                document.getElementById('cobranca-valores').innerText = valorExibicao;
+
+                const linkPagamento = App.gerarLinkPagamento();
+
+                // Limpa o elemento de QR code anterior para não acumular imagens nas tags
+                document.getElementById('qrcode').innerHTML = "";
+
+                // Instancia a biblioteca de geração de QR Code local
+                qrcodeInstance = new QRCode(document.getElementById("qrcode"), {
+                    text: linkPagamento,
+                    width: 200,
+                    height: 200,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+
+                // Alterna visualmente as telas do terminal para o checkout
+                document.getElementById('terminal-container').classList.add('hidden');
+                document.getElementById('checkout-container').classList.remove('hidden');
+            },
+
+            compartilhar: (plataforma) => {
+                const link = encodeURIComponent(App.gerarLinkPagamento());
+                const moeda = document.getElementById('moeda').value;
+                const valorExibicao = `${moeda} ${(App.valor/100).toFixed(2)}`;
+                const texto = encodeURIComponent(`Olá! Segue o link para efetuar o pagamento de ${valorExibicao} via COINPAY TERMINAL:\n\n`);
+                
+                let urlCompartilhar = "";
+                if(plataforma === 'whatsapp') {
+                    urlCompartilhar = `https://api.whatsapp.com/send?text=${texto}${link}`;
+                } else if(plataforma === 'telegram') {
+                    urlCompartilhar = `https://t.me/share/url?url=${link}&text=${texto}`;
+                }
+
+                window.open(urlCompartilhar, '_blank');
+            },
+
+            copiarLink: () => {
+                const link = App.gerarLinkPagamento();
+                navigator.clipboard.writeText(link).then(() => {
+                    alert("Link de pagamento copiado para a área de transferência!");
+                }).catch(err => {
+                    alert("Não foi possível copiar automaticamente. Copie o link manualmente.");
+                });
+            },
+
+            voltar: () => {
+                document.getElementById('checkout-container').classList.add('hidden');
+                document.getElementById('terminal-container').classList.remove('hidden');
+            },
+
             process: async () => {
-                // Validações básicas de segurança na interface
                 if(App.valor === 0) return alert("Por favor, introduza um valor no terminal.");
-                if(WALLET_DESTINO.startsWith("INSIRA_AQUI")) return alert("Erro de Configuração: Defina a WALLET_DESTINO no código do script.");
+                if(WALLET_DESTINO.startsWith("INSIRA_AQUI")) return alert("Erro: Configure a carteira de destino no código.");
                 
                 const valorFinal = (App.valor / 100).toString();
                 const moedaSelecionada = document.getElementById('moeda').value;
 
-                // Verificação de ambiente Web3 (Redirecionamento para Mobile se não houver carteira injetada)
+                // Fluxo de conexão Mobile / Web3 Padrão
                 if (!window.ethereum) {
                     const urlSemProtocolo = window.location.href.split('?')[0].replace(/^https?:\/\//, '');
+                    // Direciona o fluxo para abrir dentro do navegador DApp da MetaMask
                     window.location.href = `https://metamask.app.link/dapp/${urlSemProtocolo}?v=${valorFinal}&m=${moedaSelecionada}`;
                     return;
                 }
 
                 try {
-                    // Inicializa a conexão com o provedor Web3 injetado (ex: MetaMask)
                     const contas = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    const carteiraCliente = contas[0]; // Captura o endereço de quem está pagando (sender)
+                    const carteiraCliente = contas[0];
 
                     const provider = new ethers.BrowserProvider(window.ethereum);
                     const signer = await provider.getSigner();
-                    
-                    // Instancia o contrato utilizando o endereço e a ABI configurados
                     const contrato = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
                     
-                    // Configuração de Decimais: 
-                    // Stablecoins como USDT e USDC usam frequentemente 6 decimais nas redes principais (BSC/Polygon/Arbitrum). 
-                    // Caso o seu token customizado utilize 18 decimais, mude este valor para 18.
+                    // Ajuste de decimais para Stablecoins (USDT/USDC = 6 decimais)
                     const tokenDecimals = 6; 
                     const valorFormatado = ethers.parseUnits(valorFinal, tokenDecimals);
 
-                    alert("Ligação estabelecida! Por favor, assine a transação na sua carteira...");
+                    alert("Conexão Web3 Estabelecida. Confirme a operação em sua carteira.");
 
-                    // Executa a chamada do método transferFrom
                     const tx = await contrato.transferFrom(carteiraCliente, WALLET_DESTINO, valorFormatado);
                     
-                    alert(`Transação enviada com sucesso! Acompanhe o processamento através do hash:\n${tx.hash}`);
-                    
-                    // Aguarda a mineração do bloco na rede blockchain
+                    alert(`Transação transmitida à rede!\nHash: ${tx.hash}`);
                     await tx.wait();
-                    alert("Pagamento confirmado e liquidado com sucesso na rede!");
+                    alert("Pagamento liquidado com sucesso!");
                     
                     App.clear();
+                    App.voltar();
                 } catch (error) {
                     console.error(error);
-                    alert("A operação falhou: " + (error.reason || error.message || "Erro desconhecido na rede."));
+                    alert("A operação falhou: " + (error.reason || error.message || "Erro de execução na rede."));
                 }
             }
         };
 
-        // Executa a inicialização assim que a janela carregar por completo
         window.onload = App.init;
     </script>
 </body>
-</html>
+    </html>
