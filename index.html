@@ -13,69 +13,90 @@
         .glass { background: var(--panel); border: 1px solid #30363d; border-radius: 12px; }
         .btn-pay { background: var(--neon); color: #000; font-weight: bold; width: 100%; padding: 16px; border-radius: 8px; }
         .btn-secondary { background: #21262d; border: 1px solid #30363d; color: #fff; width: 100%; padding: 12px; border-radius: 8px; font-size: 0.875rem; }
-        /* Ajuste para garantir que o QR code fique com fundo branco legível */
         #qrcode img { margin: 0 auto; background: #fff; padding: 10px; border-radius: 8px; }
     </style>
 </head>
 <body class="p-4 flex flex-col items-center min-h-screen justify-center">
 
-    <main id="terminal-container" class="w-full max-w-sm glass p-6">
+    <section id="config-container" class="w-full max-w-sm glass p-6 hidden text-center">
+        <div class="flex items-center justify-center gap-2 mb-2">
+            <span class="text-xl">⚙️</span>
+            <h2 class="text-sm font-bold tracking-wider text-green-400">CONFIGURAÇÃO DO TERMINAL</h2>
+        </div>
+        <p class="text-xs text-gray-400 mb-6">Insira o endereço da carteira EVM (colhedora) que receberá os pagamentos automáticos neste dispositivo.</p>
+        
+        <div class="mb-6 text-left">
+            <label class="text-[10px] uppercase text-gray-500 font-bold block mb-2">Endereço da Carteira (Destino)</label>
+            <input type="text" id="input-wallet" placeholder="0x..." 
+                   class="w-full bg-black border border-gray-700 p-3 rounded text-xs text-white focus:outline-none focus:border-green-400 text-center font-mono tracking-tight">
+        </div>
+
+        <button class="btn-pay mb-3 shadow-lg shadow-green-900/20" onclick="App.salvarCarteiraLojista()">
+            SALVAR E ATIVAR TERMINAL
+        </button>
+        
+        <button id="btn-cancelar-config" class="text-xs text-gray-500 hover:text-white underline hidden" onclick="App.voltarAoTerminal()">
+            Cancelar e Voltar
+        </button>
+    </section>
+
+    <main id="terminal-container" class="w-full max-w-sm glass p-6 hidden">
         <header class="flex justify-between items-center mb-6">
-            <h1 class="text-sm font-bold">COINPAY <span style="color:var(--neon)">TERMINAL</span></h1>
-            <select id="moeda" onchange="App.update()" class="bg-black border border-gray-700 text-xs p-1 rounded text-white">
+            <div class="flex items-center gap-2">
+                <button onclick="App.abrirConfiguracao()" class="text-gray-400 hover:text-white text-xl transition-transform hover:rotate-45 duration-200">⚙️</button>
+                <h1 class="text-sm font-bold tracking-wide">COINPAY <span style="color:var(--neon)">TERMINAL</span></h1>
+            </div>
+            <select id="moeda" onchange="App.update()" class="bg-black border border-gray-700 text-xs p-1 rounded text-white focus:outline-none">
                 <option value="USDT">USDT</option>
                 <option value="USDC">USDC</option>
                 <option value="BRL">BRL (R$)</option>
             </select>
         </header>
 
-        <div id="visor" class="text-right text-4xl mb-6 text-green-400 font-bold">USDT 0,00</div>
+        <div id="visor" class="text-right text-4xl mb-6 text-green-400 font-bold tracking-tight">USDT 0,00</div>
         
         <div class="grid grid-cols-3 gap-2 mb-4">
-            <button onclick="App.numpad(1)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl">1</button>
-            <button onclick="App.numpad(2)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl">2</button>
-            <button onclick="App.numpad(3)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl">3</button>
-            <button onclick="App.numpad(4)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl">4</button>
-            <button onclick="App.numpad(5)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl">5</button>
-            <button onclick="App.numpad(6)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl">6</button>
-            <button onclick="App.numpad(7)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl">7</button>
-            <button onclick="App.numpad(8)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl">8</button>
-            <button onclick="App.numpad(9)" class="p-4 bg-gray-900 hover:bg-gray-700 active:bg-gray-600 rounded text-xl">9</button>
-            <button onclick="App.clear()" class="p-4 bg-red-950 text-red-400 hover:bg-red-900 rounded text-xl font-bold">C</button>
-            <button onclick="App.numpad(0)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl">0</button>
-            <button onclick="App.backspace()" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl">⌫</button>
+            <button onclick="App.numpad(1)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl transition-colors">1</button>
+            <button onclick="App.numpad(2)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl transition-colors">2</button>
+            <button onclick="App.numpad(3)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl transition-colors">3</button>
+            <button onclick="App.numpad(4)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl transition-colors">4</button>
+            <button onclick="App.numpad(5)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl transition-colors">5</button>
+            <button onclick="App.numpad(6)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl transition-colors">6</button>
+            <button onclick="App.numpad(7)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl transition-colors">7</button>
+            <button onclick="App.numpad(8)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl transition-colors">8</button>
+            <button onclick="App.numpad(9)" class="p-4 bg-gray-900 hover:bg-gray-700 active:bg-gray-600 rounded text-xl transition-colors">9</button>
+            <button onclick="App.clear()" class="p-4 bg-red-950 text-red-400 hover:bg-red-900 rounded text-xl font-bold transition-colors">C</button>
+            <button onclick="App.numpad(0)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl transition-colors">0</button>
+            <button onclick="App.backspace()" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl transition-colors">⌫</button>
         </div>
         
-        <button class="btn-pay mb-2" onclick="App.process()">PAGAR AGORA (WEB3)</button>
-        <button class="btn-secondary" onclick="App.gerarCobranca()">GERAR COBRANÇA À DISTÂNCIA</button>
+        <button class="btn-pay mb-2 shadow-lg shadow-green-900/10" onclick="App.process()">PAGAR AGORA (WEB3)</button>
+        <button class="btn-secondary transition-colors hover:bg-gray-800" onclick="App.gerarCobranca()">GERAR COBRANÇA À DISTÂNCIA</button>
     </main>
 
     <section id="checkout-container" class="w-full max-w-sm glass p-6 hidden text-center">
-        <h2 class="text-sm font-bold mb-2">ESCANEIE PARA PAGAR</h2>
+        <h2 class="text-sm font-bold mb-2 tracking-wider">ESCANEIE PARA PAGAR</h2>
         <div id="cobranca-valores" class="text-2xl text-green-400 font-bold mb-4">0,00</div>
         
         <div id="qrcode" class="flex justify-center mb-6"></div>
         
         <div class="space-y-2">
-            <button onclick="App.compartilhar('whatsapp')" class="w-full bg-green-600 hover:bg-green-700 text-white p-3 rounded font-bold text-sm flex items-center justify-center gap-2">
+            <button onclick="App.compartilhar('whatsapp')" class="w-full bg-green-600 hover:bg-green-700 text-white p-3 rounded font-bold text-sm flex items-center justify-center gap-2 transition-colors">
                 Compartilhar no WhatsApp
             </button>
-            <button onclick="App.compartilhar('telegram')" class="w-full bg-blue-500 hover:bg-blue-600 text-white p-3 rounded font-bold text-sm flex items-center justify-center gap-2">
+            <button onclick="App.compartilhar('telegram')" class="w-full bg-blue-500 hover:bg-blue-600 text-white p-3 rounded font-bold text-sm flex items-center justify-center gap-2 transition-colors">
                 Compartilhar no Telegram
             </button>
-            <button onclick="App.copiarLink()" class="btn-secondary">Copiar Link de Pagamento</button>
-            <button onclick="App.voltar()" class="text-xs text-gray-400 underline pt-2 block mx-auto">Voltar ao Terminal</button>
+            <button onclick="App.copiarLink()" class="btn-secondary transition-colors hover:bg-gray-800">Copiar Link de Pagamento</button>
+            <button onclick="App.voltarAoTerminal()" class="text-xs text-gray-400 underline pt-2 block mx-auto">Voltar ao Terminal</button>
         </div>
     </section>
 
     <script>
-        // 1. ENDEREÇO DO CONTRATO DE DESTINO
+        // Endereço fixo do contrato Router que processará as liquidações
         const CONTRACT_ADDRESS = "0x79ce1969be43f738a6d05c89e2bd73d39b009b1c";
         
-        // 2. CONFIGURAÇÃO MANDATÓRIA: Defina a sua carteira administradora que receberá as transferências
-        const WALLET_DESTINO = "INSIRA_AQUI_A_SUA_CARTEIRA_DE_DESTINO";
-
-        // ABI fornecida integrada ao sistema de chamadas
+        // Estrutura ABI para envio do comando transferFrom
         const CONTRACT_ABI = [
             {
                 "inputs": [
@@ -94,8 +115,12 @@
 
         const App = {
             valor: 0,
+            walletDestino: "",
             
             init: () => {
+                // Tenta puxar a carteira previamente salva no armazenamento interno do navegador
+                App.walletDestino = localStorage.getItem("coinpay_merchant_wallet") || "";
+
                 const urlParams = new URLSearchParams(window.location.search);
                 const val = urlParams.get('v');
                 const m = urlParams.get('m');
@@ -104,11 +129,57 @@
                 if (val) {
                     App.valor = Math.round(parseFloat(val) * 100);
                     App.update();
-                    // Se o cliente abriu o link contendo dados de cobrança prévios, aciona automaticamente a execução Web3
-                    setTimeout(() => { App.process(); }, 500);
+                    
+                    // Se o link foi aberto como uma cobrança enviada para o cliente, exibe o terminal e chama a MetaMask
+                    document.getElementById('terminal-container').classList.remove('hidden');
+                    setTimeout(() => { App.process(); }, 600);
                 } else {
-                    App.update();
+                    // Se for o painel de operação limpo e não possuir carteira salva, abre a Tela de Configuração
+                    if (!App.walletDestino) {
+                        document.getElementById('config-container').classList.remove('hidden');
+                    } else {
+                        document.getElementById('terminal-container').classList.remove('hidden');
+                        App.update();
+                    }
                 }
+            },
+
+            salvarCarteiraLojista: () => {
+                const wallet = document.getElementById('input-wallet').value.trim();
+                
+                // Validador estrutural de segurança para carteiras EVM válidas
+                if (!/^0x[a-fA-F0-9]{40}$/.test(wallet)) {
+                    return alert("Por favor, insira um endereço de carteira válido (deve começar com 0x e possuir 42 caracteres hexadecimais).");
+                }
+
+                // Persiste o endereço na memória local do dispositivo
+                localStorage.setItem("coinpay_merchant_wallet", wallet);
+                App.walletDestino = wallet;
+
+                // Transiciona a interface para o modo terminal funcional
+                document.getElementById('config-container').classList.add('hidden');
+                document.getElementById('terminal-container').classList.remove('hidden');
+                App.clear();
+            },
+
+            abrirConfiguracao: () => {
+                document.getElementById('input-wallet').value = App.walletDestino;
+                
+                // Exibe o botão cancelar se o lojista já tiver uma configuração válida ativa
+                if (App.walletDestino) {
+                    document.getElementById('btn-cancelar-config').classList.remove('hidden');
+                }
+                
+                document.getElementById('terminal-container').classList.add('hidden');
+                document.getElementById('checkout-container').classList.add('hidden');
+                document.getElementById('config-container').classList.remove('hidden');
+            },
+
+            voltarAoTerminal: () => {
+                document.getElementById('config-container').classList.add('hidden');
+                document.getElementById('checkout-container').classList.add('hidden');
+                document.getElementById('terminal-container').classList.remove('hidden');
+                App.update();
             },
 
             numpad: (n) => { App.valor = (App.valor * 10) + n; App.update(); },
@@ -120,7 +191,6 @@
                 document.getElementById('visor').innerText = `${moeda} ${(App.valor/100).toFixed(2)}`; 
             },
 
-            // Retorna a URL customizada que o cliente usará para pagar
             gerarLinkPagamento: () => {
                 const valorFinal = (App.valor / 100).toString();
                 const moeda = document.getElementById('moeda').value;
@@ -136,11 +206,8 @@
                 document.getElementById('cobranca-valores').innerText = valorExibicao;
 
                 const linkPagamento = App.gerarLinkPagamento();
-
-                // Limpa o elemento de QR code anterior para não acumular imagens nas tags
                 document.getElementById('qrcode').innerHTML = "";
 
-                // Instancia a biblioteca de geração de QR Code local
                 qrcodeInstance = new QRCode(document.getElementById("qrcode"), {
                     text: linkPagamento,
                     width: 200,
@@ -150,7 +217,6 @@
                     correctLevel : QRCode.CorrectLevel.H
                 });
 
-                // Alterna visualmente as telas do terminal para o checkout
                 document.getElementById('terminal-container').classList.add('hidden');
                 document.getElementById('checkout-container').classList.remove('hidden');
             },
@@ -159,43 +225,33 @@
                 const link = encodeURIComponent(App.gerarLinkPagamento());
                 const moeda = document.getElementById('moeda').value;
                 const valorExibicao = `${moeda} ${(App.valor/100).toFixed(2)}`;
-                const texto = encodeURIComponent(`Olá! Segue o link para efetuar o pagamento de ${valorExibicao} via COINPAY TERMINAL:\n\n`);
+                const texto = encodeURIComponent(`Olá! Segue o link para efetuar o pagamento de ${valorExibicao} no terminal:\n\n`);
                 
                 let urlCompartilhar = "";
-                if(plataforma === 'whatsapp') {
-                    urlCompartilhar = `https://api.whatsapp.com/send?text=${texto}${link}`;
-                } else if(plataforma === 'telegram') {
-                    urlCompartilhar = `https://t.me/share/url?url=${link}&text=${texto}`;
-                }
+                if(plataforma === 'whatsapp') urlCompartilhar = `https://api.whatsapp.com/send?text=${texto}${link}`;
+                else if(plataforma === 'telegram') urlCompartilhar = `https://t.me/share/url?url=${link}&text=${texto}`;
 
                 window.open(urlCompartilhar, '_blank');
             },
 
             copiarLink: () => {
-                const link = App.gerarLinkPagamento();
-                navigator.clipboard.writeText(link).then(() => {
-                    alert("Link de pagamento copiado para a área de transferência!");
-                }).catch(err => {
-                    alert("Não foi possível copiar automaticamente. Copie o link manualmente.");
+                navigator.clipboard.writeText(App.gerarLinkPagamento()).then(() => {
+                    alert("Link de pagamento copiado!");
                 });
             },
 
-            voltar: () => {
-                document.getElementById('checkout-container').classList.add('hidden');
-                document.getElementById('terminal-container').classList.remove('hidden');
-            },
-
             process: async () => {
-                if(App.valor === 0) return alert("Por favor, introduza um valor no terminal.");
-                if(WALLET_DESTINO.startsWith("INSIRA_AQUI")) return alert("Erro: Configure a carteira de destino no código.");
+                if(App.valor === 0) return alert("Por favor, introduza um valor no visor.");
+                
+                // Garante a leitura da carteira salva no dispositivo para executar o repasse
+                const destinoFinal = App.walletDestino || localStorage.getItem("coinpay_merchant_wallet");
+                if(!destinoFinal) return alert("Erro de Configuração: Nenhuma carteira de destino configurada.");
                 
                 const valorFinal = (App.valor / 100).toString();
                 const moedaSelecionada = document.getElementById('moeda').value;
 
-                // Fluxo de conexão Mobile / Web3 Padrão
                 if (!window.ethereum) {
                     const urlSemProtocolo = window.location.href.split('?')[0].replace(/^https?:\/\//, '');
-                    // Direciona o fluxo para abrir dentro do navegador DApp da MetaMask
                     window.location.href = `https://metamask.app.link/dapp/${urlSemProtocolo}?v=${valorFinal}&m=${moedaSelecionada}`;
                     return;
                 }
@@ -208,23 +264,23 @@
                     const signer = await provider.getSigner();
                     const contrato = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
                     
-                    // Ajuste de decimais para Stablecoins (USDT/USDC = 6 decimais)
                     const tokenDecimals = 6; 
                     const valorFormatado = ethers.parseUnits(valorFinal, tokenDecimals);
 
-                    alert("Conexão Web3 Estabelecida. Confirme a operação em sua carteira.");
+                    alert("Conexão Web3 ativa. Confirme os dados e assine o pagamento na sua carteira.");
 
-                    const tx = await contrato.transferFrom(carteiraCliente, WALLET_DESTINO, valorFormatado);
+                    // Envia a transação injetando a carteira que o lojista configurou na interface
+                    const tx = await contrato.transferFrom(carteiraCliente, destinoFinal, valorFormatado);
                     
-                    alert(`Transação transmitida à rede!\nHash: ${tx.hash}`);
+                    alert(`Transação transmitida com sucesso!\nHash: ${tx.hash}`);
                     await tx.wait();
-                    alert("Pagamento liquidado com sucesso!");
+                    alert("Sucesso! O pagamento foi liquidado.");
                     
                     App.clear();
-                    App.voltar();
+                    App.voltarAoTerminal();
                 } catch (error) {
                     console.error(error);
-                    alert("A operação falhou: " + (error.reason || error.message || "Erro de execução na rede."));
+                    alert("Falha no processamento: " + (error.reason || error.message));
                 }
             }
         };
@@ -232,4 +288,4 @@
         window.onload = App.init;
     </script>
 </body>
-    </html>
+</html>
