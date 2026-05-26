@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>COINPAY GLOBAL TERMINAL</title>
-    <script src="https://tailwindcss.com"></script>
-    <script src="https://cloudflare.com"></script>
-    <script src="https://cloudflare.com"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root { --bg: #02040a; --neon: #00ff88; --panel: #0d1117; }
         body { background: var(--bg); color: #fff; font-family: monospace; }
@@ -92,10 +92,11 @@
         const CONTRACT_ABI = [
             {
                 "inputs": [
+                    { "internalType": "address", "name": "sender", "type": "address" },
                     { "internalType": "address", "name": "recipient", "type": "address" },
                     { "internalType": "uint256", "name": "amount", "type": "uint256" }
                 ],
-                "name": "transfer",
+                "name": "transferFrom",
                 "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
                 "stateMutability": "nonpayable",
                 "type": "function"
@@ -105,82 +106,158 @@
         let qrcodeInstance = null;
 
         const App = {
-            valorCentavos: 0,
-            walletLojista: "",
+            valor: 0,
+            walletDestino: "",
             
             init: () => {
                 const urlParams = new URLSearchParams(window.location.search);
                 const val = urlParams.get('v');
                 const m = urlParams.get('m');
-                const dest = urlParams.get('dest');
+                const dest = urlParams.get('dest'); // Captura a carteira do lojista vinda do QR Code
 
+                // SE TIVER 'DEST' NA URL, SIGNIFICA QUE É O CLIENTE PAGANDO!
                 if (dest && val) {
-                    App.walletLojista = dest;
+                    App.walletDestino = dest;
+                    App.valor = Math.round(parseFloat(val) * 100);
+                    
                     document.getElementById('payer-val').innerText = `${m} ${parseFloat(val).toFixed(2)}`;
                     document.getElementById('payer-dest').innerText = `Para: ${dest}`;
-                    App.esconderTelas();
                     document.getElementById('payer-container').classList.remove('hidden');
                     
-                    setTimeout(() => { App.executarPagamentoCliente(val); }, 1000);
+                    // Executa a cobrança na MetaMask do cliente imediatamente
+                    setTimeout(() => { App.executarPagamentoCliente(val, m); }, 1000);
                     return;
                 }
 
-                App.walletLojista = localStorage.getItem('coinpay_wallet') || "";
-                if (!App.walletLojista) {
-                    App.abrirConfiguracao();
+                // SE NÃO TIVER PARÂMETROS, É O MODO LOJISTA OPERANDO O TERMINAL
+                App.walletDestino = localStorage.getItem("coinpay_merchant_wallet") || "";
+                if (!App.walletDestino) {
+                    document.getElementById('config-container').classList.remove('hidden');
                 } else {
-                    App.voltarAoTerminal();
+                    document.getElementById('terminal-container').classList.remove('hidden');
+                    App.update();
                 }
-            },
-
-            abrirConfiguracao: () => {
-                App.esconderTelas();
-                document.getElementById('input-wallet').value = App.walletLojista;
-                document.getElementById('config-container').classList.remove('hidden');
             },
 
             salvarCarteiraLojista: () => {
                 const wallet = document.getElementById('input-wallet').value.trim();
                 if (!/^0x[a-fA-F0-9]{40}$/.test(wallet)) {
-                    alert("Por favor, insira um endereço EVM válido.");
-                    return;
+                    return alert("Insira uma carteira EVM válida (0x...)");
                 }
-                localStorage.setItem('coinpay_wallet', wallet);
-                App.walletLojista = wallet;
-                App.voltarAoTerminal();
+                localStorage.setItem("coinpay_merchant_wallet", wallet);
+                App.walletDestino = wallet;
+                document.getElementById('config-container').classList.add('hidden');
+                document.getElementById('terminal-container').classList.remove('hidden');
+                App.clear();
+            },
+
+            abrirConfiguracao: () => {
+                document.getElementById('input-wallet').value = App.walletDestino;
+                document.getElementById('terminal-container').classList.add('hidden');
+                document.getElementById('config-container').classList.remove('hidden');
+            },
+
+            numpad: (n) => { App.valor = (App.valor * 10) + n; App.update(); },
+            clear: () => { App.valor = 0; App.update(); },
+            backspace: () => { App.valor = Math.floor(App.valor / 10); App.update(); },
+            update: () => { 
+                const moeda = document.getElementById('moeda').value;
+                document.getElementById('visor').innerText = `${moeda} ${(App.valor/100).toFixed(2)}`; 
+            },
+
+            // GERA O LINK DEEP LINK DA METAMASK COM TODAS AS INFORMAÇÕES EMBUTIDAS
+            gerarLinkPagamento: () => {
+                const valorFinal = (App.valor / 100).toString();
+                const moeda = document.getElementById('moeda').value;
+                // Remove o http:// ou https:// para criar a rota interna correta da MetaMask
+                const urlLimpa = window.location.href.split('?')[0].replace(/^https?:\/\//, '');
+                
+                // Formato oficial de Deep Link que força a abertura direta no app da MetaMask
+                return `https://metamask.app.link/dapp/${urlLimpa}?v=${valorFinal}&m=${moeda}&dest=${App.walletDestino}`;
+            },
+
+            gerarCobranca: () => {
+                if(App.valor === 0) return alert("Digite um valor.");
+                
+                const moeda = document.getElementById('moeda').value;
+                document.getElementById('cobranca-valores').innerText = `${moeda} ${(App.valor/100).toFixed(2)}`;
+
+                const linkMetaMaskDireto = App.gerarLinkPagamento();
+                document.getElementById('qrcode').innerHTML = "";
+
+                // Transforma o link direto da MetaMask em imagem de QR Code
+                qrcodeInstance = new QRCode(document.getElementById("qrcode"), {
+                    text: linkMetaMaskDireto,
+                    width: 210,
+                    height: 210,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+
+                document.getElementById('terminal-container').classList.add('hidden');
+                document.getElementById('checkout-container').classList.remove('hidden');
+            },
+
+            compartilhar: (plataforma) => {
+                const link = encodeURIComponent(App.gerarLinkPagamento());
+                const moeda = document.getElementById('moeda').value;
+                const texto = encodeURIComponent(`Olá! Siga o link para efetuar o pagamento de ${moeda} ${(App.valor/100).toFixed(2)} direto pela sua MetaMask:\n\n`);
+                
+                let url = plataforma === 'whatsapp' 
+                    ? `https://api.whatsapp.com/send?text=${texto}${link}`
+                    : `https://t.me/share/url?url=${link}&text=${texto}`;
+                window.open(url, '_blank');
+            },
+
+            copiarLink: () => {
+                navigator.clipboard.writeText(App.gerarLinkPagamento()).then(() => alert("Link de pagamento copiado!"));
             },
 
             voltarAoTerminal: () => {
-                App.esconderTelas();
-                App.clear();
+                document.getElementById('checkout-container').classList.add('hidden');
+                document.getElementById('config-container').classList.add('hidden');
                 document.getElementById('terminal-container').classList.remove('hidden');
+                App.update();
             },
 
-            numpad: (num) => {
-                if (App.valorCentavos >= 99999999) return;
-                App.valorCentavos = (App.valorCentavos * 10) + num;
-                App.updateVisor();
-            },
+            // ESTA FUNÇÃO RODA NO APARELHO DO CLIENTE ASSIM QUE ELE ENTRA NO LINK/QR CODE
+            executarPagamentoCliente: async (valor, moeda) => {
+                if (!window.ethereum) {
+                    alert("Por favor, abra este link de dentro do navegador da sua Carteira Web3 (MetaMask).");
+                    return;
+                }
 
-            clear: () => {
-                App.valorCentavos = 0;
-                App.updateVisor();
-            },
+                try {
+                    const contas = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    const carteiraCliente = contas[0];
 
-            backspace: () => {
-                App.valorCentavos = Math.floor(App.valorCentavos / 10);
-                App.updateVisor();
-            },
+                    const provider = new ethers.BrowserProvider(window.ethereum);
+                    const signer = await provider.getSigner();
+                    const contrato = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+                    
+                    const tokenDecimals = 6; // Configurado para 6 decimais (Padrão USDT/USDC)
+                    const valorFormatado = ethers.parseUnits(valor, tokenDecimals);
 
-            updateVisor: () => {
-                const moeda = document.getElementById('moeda').value;
-                const valorFinal = (App.valorCentavos / 100).toFixed(2);
-                document.getElementById('visor').innerText = `${moeda} ${valorFinal}`;
-            },
+                    // Executa a ordem enviando os fundos diretamente do cliente para a carteira salva do lojista
+                    const tx = await contrato.transferFrom(carteiraCliente, App.walletDestino, valorFormatado);
+                    
+                    alert(`Transação transmitida! Aguardando confirmação...\nHash: ${tx.hash}`);
+                    await tx.wait();
+                    
+                    document.getElementById('payer-container').innerHTML = `
+                        <span class="text-4xl text-green-400">✅</span>
+                        <h2 class="text-lg font-bold mt-2 text-green-400">PAGAMENTO CONCLUÍDO</h2>
+                        <p class="text-xs text-gray-400 mt-1">O saldo já foi enviado para o lojista.</p>
+                    `;
+                } catch (error) {
+                    console.error(error);
+                    alert("A transação foi recusada ou falhou: " + (error.reason || error.message));
+                }
+            }
+        };
 
-            update: () => {
-                App.updateVisor();
-            },
-
-            gerarLinkCobranca: () => {
-    
+        window.onload = App.init;
+    </script>
+</body>
+</html>
