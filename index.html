@@ -23,55 +23,45 @@
             <span class="text-xl">⚙️</span>
             <h2 class="text-sm font-bold tracking-wider text-green-400">CONFIGURAÇÃO DO TERMINAL</h2>
         </div>
-        <p class="text-xs text-gray-400 mb-6">Insira o endereço da carteira EVM (colhedora) que receberá os pagamentos automáticos neste dispositivo.</p>
-        
+        <p class="text-xs text-gray-400 mb-6">Insira a carteira que receberá os pagamentos automáticos neste dispositivo.</p>
         <div class="mb-6 text-left">
-            <label class="text-[10px] uppercase text-gray-500 font-bold block mb-2">Endereço da Carteira (Destino)</label>
-            <input type="text" id="input-wallet" placeholder="0x..." 
-                   class="w-full bg-black border border-gray-700 p-3 rounded text-xs text-white focus:outline-none focus:border-green-400 text-center font-mono tracking-tight">
+            <label class="text-[10px] uppercase text-gray-500 font-bold block mb-2">Sua Carteira de Recebimento</label>
+            <input type="text" id="input-wallet" placeholder="0x..." class="w-full bg-black border border-gray-700 p-3 rounded text-xs text-white focus:outline-none focus:border-green-400 text-center font-mono">
         </div>
-
-        <button class="btn-pay mb-3 shadow-lg shadow-green-900/20" onclick="App.salvarCarteiraLojista()">
-            SALVAR E ATIVAR TERMINAL
-        </button>
-        
-        <button id="btn-cancelar-config" class="text-xs text-gray-500 hover:text-white underline hidden" onclick="App.voltarAoTerminal()">
-            Cancelar e Voltar
-        </button>
+        <button class="btn-pay mb-3" onclick="App.salvarCarteiraLojista()">ATIVAR TERMINAL</button>
     </section>
 
     <main id="terminal-container" class="w-full max-w-sm glass p-6 hidden">
         <header class="flex justify-between items-center mb-6">
             <div class="flex items-center gap-2">
-                <button onclick="App.abrirConfiguracao()" class="text-gray-400 hover:text-white text-xl transition-transform hover:rotate-45 duration-200">⚙️</button>
+                <button onclick="App.abrirConfiguracao()" class="text-gray-400 hover:text-white text-xl">⚙️</button>
                 <h1 class="text-sm font-bold tracking-wide">COINPAY <span style="color:var(--neon)">TERMINAL</span></h1>
             </div>
             <select id="moeda" onchange="App.update()" class="bg-black border border-gray-700 text-xs p-1 rounded text-white focus:outline-none">
                 <option value="USDT">USDT</option>
                 <option value="USDC">USDC</option>
-                <option value="BRL">BRL (R$)</option>
+                <option value="BRL">BRL</option>
             </select>
         </header>
 
         <div id="visor" class="text-right text-4xl mb-6 text-green-400 font-bold tracking-tight">USDT 0,00</div>
         
         <div class="grid grid-cols-3 gap-2 mb-4">
-            <button onclick="App.numpad(1)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl transition-colors">1</button>
-            <button onclick="App.numpad(2)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl transition-colors">2</button>
-            <button onclick="App.numpad(3)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl transition-colors">3</button>
-            <button onclick="App.numpad(4)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl transition-colors">4</button>
-            <button onclick="App.numpad(5)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl transition-colors">5</button>
-            <button onclick="App.numpad(6)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl transition-colors">6</button>
-            <button onclick="App.numpad(7)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl transition-colors">7</button>
-            <button onclick="App.numpad(8)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl transition-colors">8</button>
-            <button onclick="App.numpad(9)" class="p-4 bg-gray-900 hover:bg-gray-700 active:bg-gray-600 rounded text-xl transition-colors">9</button>
-            <button onclick="App.clear()" class="p-4 bg-red-950 text-red-400 hover:bg-red-900 rounded text-xl font-bold transition-colors">C</button>
-            <button onclick="App.numpad(0)" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl transition-colors">0</button>
-            <button onclick="App.backspace()" class="p-4 bg-gray-800 hover:bg-gray-700 active:bg-gray-600 rounded text-xl transition-colors">⌫</button>
+            <button onclick="App.numpad(1)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">1</button>
+            <button onclick="App.numpad(2)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">2</button>
+            <button onclick="App.numpad(3)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">3</button>
+            <button onclick="App.numpad(4)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">4</button>
+            <button onclick="App.numpad(5)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">5</button>
+            <button onclick="App.numpad(6)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">6</button>
+            <button onclick="App.numpad(7)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">7</button>
+            <button onclick="App.numpad(8)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">8</button>
+            <button onclick="App.numpad(9)" class="p-4 bg-gray-900 hover:bg-gray-700 rounded text-xl">9</button>
+            <button onclick="App.clear()" class="p-4 bg-red-950 text-red-400 hover:bg-red-900 rounded text-xl font-bold">C</button>
+            <button onclick="App.numpad(0)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">0</button>
+            <button onclick="App.backspace()" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">⌫</button>
         </div>
         
-        <button class="btn-pay mb-2 shadow-lg shadow-green-900/10" onclick="App.process()">PAGAR AGORA (WEB3)</button>
-        <button class="btn-secondary transition-colors hover:bg-gray-800" onclick="App.gerarCobranca()">GERAR COBRANÇA À DISTÂNCIA</button>
+        <button class="btn-pay" onclick="App.gerarCobranca()">GERAR COBRANÇA (QR CODE)</button>
     </main>
 
     <section id="checkout-container" class="w-full max-w-sm glass p-6 hidden text-center">
@@ -81,22 +71,24 @@
         <div id="qrcode" class="flex justify-center mb-6"></div>
         
         <div class="space-y-2">
-            <button onclick="App.compartilhar('whatsapp')" class="w-full bg-green-600 hover:bg-green-700 text-white p-3 rounded font-bold text-sm flex items-center justify-center gap-2 transition-colors">
-                Compartilhar no WhatsApp
-            </button>
-            <button onclick="App.compartilhar('telegram')" class="w-full bg-blue-500 hover:bg-blue-600 text-white p-3 rounded font-bold text-sm flex items-center justify-center gap-2 transition-colors">
-                Compartilhar no Telegram
-            </button>
-            <button onclick="App.copiarLink()" class="btn-secondary transition-colors hover:bg-gray-800">Copiar Link de Pagamento</button>
+            <button onclick="App.compartilhar('whatsapp')" class="w-full bg-green-600 hover:bg-green-700 text-white p-3 rounded font-bold text-sm">Compartilhar no WhatsApp</button>
+            <button onclick="App.compartilhar('telegram')" class="w-full bg-blue-500 hover:bg-blue-600 text-white p-3 rounded font-bold text-sm">Compartilhar no Telegram</button>
+            <button onclick="App.copiarLink()" class="btn-secondary">Copiar Link Direto</button>
             <button onclick="App.voltarAoTerminal()" class="text-xs text-gray-400 underline pt-2 block mx-auto">Voltar ao Terminal</button>
         </div>
     </section>
 
+    <section id="payer-container" class="w-full max-w-sm glass p-6 hidden text-center animate-pulse">
+        <h2 class="text-xs tracking-widest text-gray-400 uppercase mb-2">COINPAY GATEWAY</h2>
+        <div class="text-sm font-bold mb-4">PROCESSANDO PAGAMENTO</div>
+        <div id="payer-val" class="text-3xl text-green-400 font-bold mb-2">0,00</div>
+        <p class="text-[11px] text-gray-500 font-mono mb-6 break-all" id="payer-dest"></p>
+        <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-green-400 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
+        <p class="text-xs text-gray-400 mt-4">Confirme a transação na janela flutuante da sua carteira...</p>
+    </section>
+
     <script>
-        // Endereço fixo do contrato Router que processará as liquidações
         const CONTRACT_ADDRESS = "0x79ce1969be43f738a6d05c89e2bd73d39b009b1c";
-        
-        // Estrutura ABI para envio do comando transferFrom
         const CONTRACT_ABI = [
             {
                 "inputs": [
@@ -118,45 +110,42 @@
             walletDestino: "",
             
             init: () => {
-                // Tenta puxar a carteira previamente salva no armazenamento interno do navegador
-                App.walletDestino = localStorage.getItem("coinpay_merchant_wallet") || "";
-
                 const urlParams = new URLSearchParams(window.location.search);
                 const val = urlParams.get('v');
                 const m = urlParams.get('m');
-                
-                if (m) document.getElementById('moeda').value = m;
-                if (val) {
+                const dest = urlParams.get('dest'); // Captura a carteira do lojista vinda do QR Code
+
+                // SE TIVER 'DEST' NA URL, SIGNIFICA QUE É O CLIENTE PAGANDO!
+                if (dest && val) {
+                    App.walletDestino = dest;
                     App.valor = Math.round(parseFloat(val) * 100);
-                    App.update();
                     
-                    // Se o link foi aberto como uma cobrança enviada para o cliente, exibe o terminal e chama a MetaMask
-                    document.getElementById('terminal-container').classList.remove('hidden');
-                    setTimeout(() => { App.process(); }, 600);
+                    document.getElementById('payer-val').innerText = `${m} ${parseFloat(val).toFixed(2)}`;
+                    document.getElementById('payer-dest').innerText = `Para: ${dest}`;
+                    document.getElementById('payer-container').classList.remove('hidden');
+                    
+                    // Executa a cobrança na MetaMask do cliente imediatamente
+                    setTimeout(() => { App.executarPagamentoCliente(val, m); }, 1000);
+                    return;
+                }
+
+                // SE NÃO TIVER PARÂMETROS, É O MODO LOJISTA OPERANDO O TERMINAL
+                App.walletDestino = localStorage.getItem("coinpay_merchant_wallet") || "";
+                if (!App.walletDestino) {
+                    document.getElementById('config-container').classList.remove('hidden');
                 } else {
-                    // Se for o painel de operação limpo e não possuir carteira salva, abre a Tela de Configuração
-                    if (!App.walletDestino) {
-                        document.getElementById('config-container').classList.remove('hidden');
-                    } else {
-                        document.getElementById('terminal-container').classList.remove('hidden');
-                        App.update();
-                    }
+                    document.getElementById('terminal-container').classList.remove('hidden');
+                    App.update();
                 }
             },
 
             salvarCarteiraLojista: () => {
                 const wallet = document.getElementById('input-wallet').value.trim();
-                
-                // Validador estrutural de segurança para carteiras EVM válidas
                 if (!/^0x[a-fA-F0-9]{40}$/.test(wallet)) {
-                    return alert("Por favor, insira um endereço de carteira válido (deve começar com 0x e possuir 42 caracteres hexadecimais).");
+                    return alert("Insira uma carteira EVM válida (0x...)");
                 }
-
-                // Persiste o endereço na memória local do dispositivo
                 localStorage.setItem("coinpay_merchant_wallet", wallet);
                 App.walletDestino = wallet;
-
-                // Transiciona a interface para o modo terminal funcional
                 document.getElementById('config-container').classList.add('hidden');
                 document.getElementById('terminal-container').classList.remove('hidden');
                 App.clear();
@@ -164,54 +153,43 @@
 
             abrirConfiguracao: () => {
                 document.getElementById('input-wallet').value = App.walletDestino;
-                
-                // Exibe o botão cancelar se o lojista já tiver uma configuração válida ativa
-                if (App.walletDestino) {
-                    document.getElementById('btn-cancelar-config').classList.remove('hidden');
-                }
-                
                 document.getElementById('terminal-container').classList.add('hidden');
-                document.getElementById('checkout-container').classList.add('hidden');
                 document.getElementById('config-container').classList.remove('hidden');
-            },
-
-            voltarAoTerminal: () => {
-                document.getElementById('config-container').classList.add('hidden');
-                document.getElementById('checkout-container').classList.add('hidden');
-                document.getElementById('terminal-container').classList.remove('hidden');
-                App.update();
             },
 
             numpad: (n) => { App.valor = (App.valor * 10) + n; App.update(); },
             clear: () => { App.valor = 0; App.update(); },
             backspace: () => { App.valor = Math.floor(App.valor / 10); App.update(); },
-            
             update: () => { 
                 const moeda = document.getElementById('moeda').value;
                 document.getElementById('visor').innerText = `${moeda} ${(App.valor/100).toFixed(2)}`; 
             },
 
+            // GERA O LINK DEEP LINK DA METAMASK COM TODAS AS INFORMAÇÕES EMBUTIDAS
             gerarLinkPagamento: () => {
                 const valorFinal = (App.valor / 100).toString();
                 const moeda = document.getElementById('moeda').value;
-                const urlBase = window.location.href.split('?')[0];
-                return `${urlBase}?v=${valorFinal}&m=${moeda}`;
+                // Remove o http:// ou https:// para criar a rota interna correta da MetaMask
+                const urlLimpa = window.location.href.split('?')[0].replace(/^https?:\/\//, '');
+                
+                // Formato oficial de Deep Link que força a abertura direta no app da MetaMask
+                return `https://metamask.app.link/dapp/${urlLimpa}?v=${valorFinal}&m=${moeda}&dest=${App.walletDestino}`;
             },
 
             gerarCobranca: () => {
-                if(App.valor === 0) return alert("Digite um valor para gerar cobrança.");
+                if(App.valor === 0) return alert("Digite um valor.");
                 
                 const moeda = document.getElementById('moeda').value;
-                const valorExibicao = `${moeda} ${(App.valor/100).toFixed(2)}`;
-                document.getElementById('cobranca-valores').innerText = valorExibicao;
+                document.getElementById('cobranca-valores').innerText = `${moeda} ${(App.valor/100).toFixed(2)}`;
 
-                const linkPagamento = App.gerarLinkPagamento();
+                const linkMetaMaskDireto = App.gerarLinkPagamento();
                 document.getElementById('qrcode').innerHTML = "";
 
+                // Transforma o link direto da MetaMask em imagem de QR Code
                 qrcodeInstance = new QRCode(document.getElementById("qrcode"), {
-                    text: linkPagamento,
-                    width: 200,
-                    height: 200,
+                    text: linkMetaMaskDireto,
+                    width: 210,
+                    height: 210,
                     colorDark : "#000000",
                     colorLight : "#ffffff",
                     correctLevel : QRCode.CorrectLevel.H
@@ -224,35 +202,29 @@
             compartilhar: (plataforma) => {
                 const link = encodeURIComponent(App.gerarLinkPagamento());
                 const moeda = document.getElementById('moeda').value;
-                const valorExibicao = `${moeda} ${(App.valor/100).toFixed(2)}`;
-                const texto = encodeURIComponent(`Olá! Segue o link para efetuar o pagamento de ${valorExibicao} no terminal:\n\n`);
+                const texto = encodeURIComponent(`Olá! Siga o link para efetuar o pagamento de ${moeda} ${(App.valor/100).toFixed(2)} direto pela sua MetaMask:\n\n`);
                 
-                let urlCompartilhar = "";
-                if(plataforma === 'whatsapp') urlCompartilhar = `https://api.whatsapp.com/send?text=${texto}${link}`;
-                else if(plataforma === 'telegram') urlCompartilhar = `https://t.me/share/url?url=${link}&text=${texto}`;
-
-                window.open(urlCompartilhar, '_blank');
+                let url = plataforma === 'whatsapp' 
+                    ? `https://api.whatsapp.com/send?text=${texto}${link}`
+                    : `https://t.me/share/url?url=${link}&text=${texto}`;
+                window.open(url, '_blank');
             },
 
             copiarLink: () => {
-                navigator.clipboard.writeText(App.gerarLinkPagamento()).then(() => {
-                    alert("Link de pagamento copiado!");
-                });
+                navigator.clipboard.writeText(App.gerarLinkPagamento()).then(() => alert("Link de pagamento copiado!"));
             },
 
-            process: async () => {
-                if(App.valor === 0) return alert("Por favor, introduza um valor no visor.");
-                
-                // Garante a leitura da carteira salva no dispositivo para executar o repasse
-                const destinoFinal = App.walletDestino || localStorage.getItem("coinpay_merchant_wallet");
-                if(!destinoFinal) return alert("Erro de Configuração: Nenhuma carteira de destino configurada.");
-                
-                const valorFinal = (App.valor / 100).toString();
-                const moedaSelecionada = document.getElementById('moeda').value;
+            voltarAoTerminal: () => {
+                document.getElementById('checkout-container').classList.add('hidden');
+                document.getElementById('config-container').classList.add('hidden');
+                document.getElementById('terminal-container').classList.remove('hidden');
+                App.update();
+            },
 
+            // ESTA FUNÇÃO RODA NO APARELHO DO CLIENTE ASSIM QUE ELE ENTRA NO LINK/QR CODE
+            executarPagamentoCliente: async (valor, moeda) => {
                 if (!window.ethereum) {
-                    const urlSemProtocolo = window.location.href.split('?')[0].replace(/^https?:\/\//, '');
-                    window.location.href = `https://metamask.app.link/dapp/${urlSemProtocolo}?v=${valorFinal}&m=${moedaSelecionada}`;
+                    alert("Por favor, abra este link de dentro do navegador da sua Carteira Web3 (MetaMask).");
                     return;
                 }
 
@@ -264,23 +236,23 @@
                     const signer = await provider.getSigner();
                     const contrato = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
                     
-                    const tokenDecimals = 6; 
-                    const valorFormatado = ethers.parseUnits(valorFinal, tokenDecimals);
+                    const tokenDecimals = 6; // Configurado para 6 decimais (Padrão USDT/USDC)
+                    const valorFormatado = ethers.parseUnits(valor, tokenDecimals);
 
-                    alert("Conexão Web3 ativa. Confirme os dados e assine o pagamento na sua carteira.");
-
-                    // Envia a transação injetando a carteira que o lojista configurou na interface
-                    const tx = await contrato.transferFrom(carteiraCliente, destinoFinal, valorFormatado);
+                    // Executa a ordem enviando os fundos diretamente do cliente para a carteira salva do lojista
+                    const tx = await contrato.transferFrom(carteiraCliente, App.walletDestino, valorFormatado);
                     
-                    alert(`Transação transmitida com sucesso!\nHash: ${tx.hash}`);
+                    alert(`Transação transmitida! Aguardando confirmação...\nHash: ${tx.hash}`);
                     await tx.wait();
-                    alert("Sucesso! O pagamento foi liquidado.");
                     
-                    App.clear();
-                    App.voltarAoTerminal();
+                    document.getElementById('payer-container').innerHTML = `
+                        <span class="text-4xl text-green-400">✅</span>
+                        <h2 class="text-lg font-bold mt-2 text-green-400">PAGAMENTO CONCLUÍDO</h2>
+                        <p class="text-xs text-gray-400 mt-1">O saldo já foi enviado para o lojista.</p>
+                    `;
                 } catch (error) {
                     console.error(error);
-                    alert("Falha no processamento: " + (error.reason || error.message));
+                    alert("A transação foi recusada ou falhou: " + (error.reason || error.message));
                 }
             }
         };
