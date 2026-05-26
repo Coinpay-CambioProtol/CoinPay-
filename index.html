@@ -3,131 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CoinPay Global Terminal</title>
-    <!-- Tailwind CSS para Estilização Moderna -->
+    <title>CoinPay Crypto POS</title>
     <script src="https://tailwindcss.com"></script>
-    <!-- Fontes do Google para um Look Premium -->
     <link rel="preconnect" href="https://googleapis.com">
     <link rel="preconnect" href="https://gstatic.com" crossorigin>
-    <link href="https://googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-    <!-- Bibliotecas Web3 e QR Code -->
+    <link href="https://googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
     <script src="https://cloudflare.com"></script>
     <script src="https://cloudflare.com"></script>
 
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background: linear-gradient(135deg, #070a13 0%, #0d1527 100%);
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
         }
-        .font-mono-custom {
+        .font-pos {
             font-family: 'JetBrains Mono', monospace;
         }
-        .glass-card {
-            background: rgba(17, 24, 39, 0.7);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        /* Visual do Hardware da Maquininha */
+        .pos-hardware {
+            background: linear-gradient(180deg, #2c3545 0%, #181e29 100%);
+            border: 4px solid #3d485c;
+            box-shadow: 
+                0 30px 60px -15px rgba(0,0,0,0.8),
+                inset 0 2px 4px rgba(255,255,255,0.1);
         }
-        .btn-neon {
-            background: linear-gradient(135deg, #00ff87 0%, #60efff 100%);
-            color: #060b13;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        /* Tela de Cristal Líquido / OLED da Maquininha */
+        .pos-screen {
+            background: #040811;
+            border: 3px solid #131924;
+            box-shadow: inset 0 3px 10px rgba(0,0,0,0.9);
         }
-        .btn-neon:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(0, 255, 135, 0.35);
+        /* Botões Físicos Embutidos */
+        .pos-btn {
+            background: linear-gradient(180deg, #222936 0%, #151a24 100%);
+            border: 1px solid #2e384d;
+            box-shadow: 
+                0 4px 0 #0d1118,
+                0 5px 10px rgba(0,0,0,0.5),
+                inset 0 1px 1px rgba(255,255,255,0.05);
+            transition: all 0.1s ease;
         }
-        .btn-numpad {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: all 0.2s ease;
+        .pos-btn:active {
+            transform: translateY(3px);
+            box-shadow: 
+                0 1px 0 #0d1118,
+                0 2px 5px rgba(0,0,0,0.5);
         }
-        .btn-numpad:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.15);
+        .pos-btn-action {
+            box-shadow: 0 4px 0 var(--shadow-color), 0 5px 10px rgba(0,0,0,0.5);
+        }
+        .pos-btn-action:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 var(--shadow-color), 0 2px 5px rgba(0,0,0,0.5);
         }
         #qrcode img {
             margin: 0 auto;
             background: #fff;
-            padding: 14px;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 8px;
+            border-radius: 8px;
         }
     </style>
 </head>
-<body class="p-4 flex flex-col items-center min-h-screen justify-center antialiased text-slate-100">
+<body class="p-4 flex flex-col items-center min-h-screen justify-center antialiased">
 
-    <!-- CONTAINER PRINCIPAL CENTRALIZADO -->
-    <div class="w-full max-w-md">
+    <!-- CORPO DA MAQUININHA (HARDWARE) -->
+    <div class="w-full max-w-[360px] pos-hardware rounded-[40px] p-5 flex flex-col relative select-none">
+        
+        <!-- Slot Superior de Tarjeta / Sensor NFC -->
+        <div class="w-2/3 h-1 bg-[#151a24] mx-auto mb-4 rounded-full opacity-60 shadow-inner"></div>
+        <div class="text-[9px] text-center text-slate-500 font-bold tracking-widest uppercase mb-3 flex items-center justify-center gap-1">
+            <span>☷</span> COINPAY GLOBAL POS <span>☷</span>
+        </div>
 
-        <!-- TELA 1: CONFIGURAÇÃO DO LOJISTA -->
-        <section id="config-container" class="glass-card rounded-2xl p-8 hidden text-center">
-            <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-emerald-500/10 text-emerald-400 mb-4 border border-emerald-500/20">
-                <svg xmlns="http://w3.org" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-            </div>
-            <h2 class="text-xl font-bold tracking-tight text-white mb-2">Configurar Terminal</h2>
-            <p class="text-sm text-slate-400 mb-6 px-4">Insira o endereço da sua carteira EVM para receber pagamentos diretos.</p>
+        <!-- TELA DO DISPOSITIVO -->
+        <div class="pos-screen rounded-2xl p-4 min-h-[260px] flex flex-col justify-between mb-5 relative overflow-hidden">
             
-            <div class="mb-6 text-left">
-                <label class="text-xs uppercase font-semibold tracking-wider text-slate-400 block mb-2">Sua Carteira de Recebimento</label>
-                <input type="text" id="input-wallet" placeholder="0x..." class="w-full bg-slate-950/80 border border-slate-800 p-4 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500 text-center font-mono-custom tracking-wide placeholder-slate-600 transition-all">
-            </div>
-            <button class="w-full btn-neon font-bold py-4 rounded-xl text-sm uppercase tracking-wider" onclick="App.salvarCarteiraLojista()">Ativar Terminal</button>
-        </section>
-
-        <!-- TELA 2: OPERAÇÃO DO TERMINAL (PDV) -->
-        <main id="terminal-container" class="glass-card rounded-2xl p-6 hidden">
-            <header class="flex justify-between items-center mb-6">
-                <div class="flex items-center gap-3">
-                    <button onclick="App.abrirConfiguracao()" class="text-slate-400 hover:text-white p-2 rounded-lg bg-slate-800/40 hover:bg-slate-800 border border-slate-700/30 transition-all">
-                        <svg xmlns="http://w3.org" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                    </button>
-                    <h1 class="text-sm font-bold tracking-wider text-slate-300">COINPAY <span class="text-emerald-400">TERMINAL</span></h1>
+            <!-- TELA 1: CONFIGURAÇÃO DO LOJISTA -->
+            <section id="config-container" class="hidden h-full flex flex-col justify-between text-center py-2">
+                <div>
+                    <div class="text-amber-400 text-xs font-bold font-pos mb-1">[ CONFIGURAÇÃO ]</div>
+                    <p class="text-[10px] text-slate-400 font-pos">Insira a carteira EVM destino:</p>
                 </div>
-                <select id="moeda" onchange="App.update()" class="bg-slate-950 border border-slate-800 text-xs px-3 py-1.5 rounded-lg text-slate-200 focus:outline-none focus:border-emerald-500 font-semibold cursor-pointer">
-                    <option value="USDT">USDT</option>
-                    <option value="USDC">USDC</option>
-                    <option value="BRL">BRL</option>
-                </select>
-            </header>
+                <div class="my-4">
+                    <input type="text" id="input-wallet" placeholder="0x..." class="w-full bg-slate-900 border border-slate-800 p-2.5 rounded text-[11px] text-center text-white font-pos focus:outline-none focus:border-amber-500">
+                </div>
+                <div class="text-[10px] text-slate-500 font-pos animate-pulse">Aperte ATIVAR no teclado abaixo</div>
+            </section>
 
-            <!-- VISOR DIGITAL -->
-            <div class="bg-slate-950/60 border border-slate-900 rounded-xl p-5 mb-6 text-right shadow-inner">
-                <div id="visor" class="text-4xl font-bold tracking-tight text-emerald-400 font-mono-custom">USDT 0,00</div>
-            </div>
-            
-            <!-- TECLADO GRID -->
-            <div class="grid grid-cols-3 gap-3 mb-6 font-mono-custom text-xl font-semibold">
-                <button onclick="App.numpad(1)" class="btn-numpad p-4 rounded-xl text-white">1</button>
-                <button onclick="App.numpad(2)" class="btn-numpad p-4 rounded-xl text-white">2</button>
-                <button onclick="App.numpad(3)" class="btn-numpad p-4 rounded-xl text-white">3</button>
-                <button onclick="App.numpad(4)" class="btn-numpad p-4 rounded-xl text-white">4</button>
-                <button onclick="App.numpad(5)" class="btn-numpad p-4 rounded-xl text-white">5</button>
-                <button onclick="App.numpad(6)" class="btn-numpad p-4 rounded-xl text-white">6</button>
-                <button onclick="App.numpad(7)" class="btn-numpad p-4 rounded-xl text-white">7</button>
-                <button onclick="App.numpad(8)" class="btn-numpad p-4 rounded-xl text-white">8</button>
-                <button onclick="App.numpad(9)" class="btn-numpad p-4 rounded-xl text-white">9</button>
-                <button onclick="App.clear()" class="p-4 bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/20 rounded-xl transition-all">C</button>
-                <button onclick="App.numpad(0)" class="btn-numpad p-4 rounded-xl text-white">0</button>
-                <button onclick="App.backspace()" class="btn-numpad p-4 flex items-center justify-center rounded-xl text-slate-400 hover:text-white">
-                    <svg xmlns="http://w3.org" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414 6.414a2 2 0 001.414.586H19a2 2 0 002-2V7a2 2 0 00-2-2h-8.172a2 2 0 00-1.414.586L3 12z"/></svg>
-                </button>
-            </div>
-            
-            <button class="w-full btn-neon font-bold py-4 rounded-xl text-sm uppercase tracking-wider" onclick="App.gerarCobranca()">Gerar QR Code de Cobrança</button>
-        </main>
+            <!-- TELA 2: VISOR PRINCIPAL (DIGITAÇÃO DO VALOR) -->
+            <main id="terminal-container" class="hidden h-full flex flex-col justify-between">
+                <div class="flex justify-between items-center border-b border-slate-900 pb-2">
+                    <button onclick="App.abrirConfiguracao()" class="text-[11px] text-slate-500 hover:text-slate-300 font-pos">⚙️ Menu</button>
+                    <select id="moeda" onchange="App.update()" class="bg-slate-900 border border-slate-800 text-[10px] px-2 py-0.5 rounded text-emerald-400 font-pos font-bold focus:outline-none cursor-pointer">
+                        <option value="USDT">USDT</option>
+                        <option value="USDC">USDC</option>
+                        <option value="BRL">BRL</option>
+                    </select>
+                </div>
+                <div class="text-right py-6">
+                    <span class="text-[10px] text-slate-500 font-pos block uppercase tracking-wider">Valor da Venda</span>
+                    <div id="visor" class="text-3xl font-bold text-emerald-400 font-pos mt-1 tracking-tight">USDT 0,00</div>
+                </div>
+                <div class="text-center text-[9px] text-slate-500 font-pos tracking-wide animate-pulse">
+                    Insira o valor e aperte CONFIRMA
+                </div>
+            </main>
 
-        <!-- TELA 3: CHECKOUT (QR CODE GERADO) -->
-        <section id="checkout-container" class="glass-card rounded-2xl p-6 hidden text-center">
-            <span class="text-xs font-bold tracking-widest text-emerald-400 uppercase bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20">Aguardando Pagamento</span>
-            <div id="cobranca-valores" class="text-3xl font-bold text-white mt-4 mb-5 font-mono-custom">0,00</div>
+            <!-- TELA 3: PAGAMENTO POR QR CODE -->
+            <section id="checkout-container" class="hidden h-full flex flex-col justify-between text-center">
+                <div class="text-emerald-400 text-[10px] font-bold font-pos tracking-wider uppercase">Aguardando Cripto...</div>
+                <div id="cobranca-valores" class="text-lg font-bold text-white font-pos my-1">0,00</div>
+                
+                <div id="qrcode" class="flex justify-center my-1 scale-95"></div>
+                
+                <div class="flex gap-1 justify-center">
+                    <button onclick="App.compartilhar('whatsapp')" class="text-[9px] bg-slate-900 text-slate-300 px-2 py-1 rounded border border-slate-800 hover:text-white">Zap</button>
+                    <button onclick="App.copiarLink()" class="text-[9px] bg-slate-900 text-slate-300 px-2 py-1 rounded border border-slate-800 hover:text-white">Copiar</button>
+                    <button onclick="App.voltarAoTerminal()" class="text-[9px] bg-rose-950/40 text-rose-400 px-2 py-1 rounded border border-rose-900/30">Cancelar</button>
+                </div>
+            </section>
+
+            <!-- TELA 4: GATEWAY DE PROCESSAMENTO -->
+            <section id="payer-container" class="hidden h-full flex flex-col justify-between text-center py-4">
+                <div id="payer-loading-content" class="space-y-4">
+                    <div class="text-slate-400 text-[10px] font-pos uppercase tracking-widest animate-pulse">Conectando Rede...</div>
+                    <div id="payer-val" class="text-2xl font-bold text-emerald-400 font-pos">0,00</div>
+                    <div class="text-[9px] text-slate-500 font-pos bg-slate-950 p-2 rounded break-all" id="payer-dest"></div>
+                    <p class="text-[10px] text-slate-400 px-2 leading-tight">Autorize a transação na sua carteira Web3 conectada.</p>
+                </div>
+                <div id="payer-result-content" class="hidden flex flex-col items-center justify-center h-full space-y-2"></div>
+            </section>
+
+        </div>
+
+        <!-- TECLADO FÍSICO DA MAQUININHA -->
+        <div class="grid grid-cols-3 gap-3 p-1 font-pos">
+            <button onclick="App.numpad(1)" class="pos-btn py-3 rounded-xl text-lg font-bold text-slate-300">1</button>
+            <button onclick="App.numpad(2)" class="pos-btn py-3 rounded-xl text-lg font-bold text-slate-300">2</button>
+            <button onclick="App.numpad(3)" class="pos-btn py-3 rounded-xl text-lg font-bold text-slate-300">3</button>
             
-            <div id="qrcode" class="flex justify-center mb-6"></div>
+            <button onclick="App.numpad(4)" class="pos-btn py-3 rounded-xl text-lg font-bold text-slate-300">4</button>
+            <button onclick="App.numpad(5)" class="pos-btn py-3 rounded-xl text-lg font-bold text-slate-300">5</button>
+            <button onclick="App.numpad(6)" class="pos-btn py-3 rounded-xl text-lg font-bold text-slate-300">6</button>
             
-            <div class="space-y-2.5">
-                <button onclick="App.compartilhar('whatsapp')" class="w-full bg-[#25D366] hover:bg-[#20ba59] text-slate-950 p-3.5 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2">
-                    Enviar via WhatsApp
-                </button>
-                <button onclick="App.compartilhar('telegram')" class="w-full bg-[#0088cc] hover:bg-[#0077b3] text-white p-3.5 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2">
-                    Enviar via Telegram
-                </button>
+            <button onclick="App.numpad(7)" class="pos-btn py-3 rounded-xl text-lg font-bold text-slate-300">7</button>
+            <button onclick="App.numpad(8)" class="pos-btn py-3 rounded-xl text-lg font-bold text-slate-300">8</button>
+            <button onclick="App.numpad(9)" class="pos-btn py-3 rounded-xl text-lg font-bold text-slate-300">9</button>
+            
+            <!-- Botão ANULA (Vermelho) -->
+            <button id="btn-cancel" onclick="App.clear()" style="--shadow-color: #5c1d24" class="pos-btn-action py-3 bg-rose-700 border border-rose-600 hover:bg-rose-600 rounded-xl text-xs font-bold text-white uppercase tracking-wider">Anula</button>
+            <button onclick="App.numpad(0)" class="pos-btn py-3 rounded-xl text-lg font-bold text-slate-300">0</button>
+            <!-- Botão CORRIGE (Amarelo) -->
+            <button onclick="App.backspace()" style="--shadow-color: #614615" class="pos-btn-action py-3 bg-amber-500 border border-amber-400 hover:bg-amber-400 rounded-xl text-xs font-bold text-slate-950 uppercase tracking-wider">Corrige</button>
+        </div>
+
+        <!-- Botão CONFIRMA Grande (Verde) -->
+        <div class="mt-3 px-1">
+            <button id="btn-confirm" onclick="App.acaoBotaoVerde()" style="--shadow-color: #145c32" class="pos-btn-action w-full py-4 bg-emerald-600 border border-emerald-500 hover:bg-emerald-500 rounded-xl text-sm font-bold text-slate-950 uppercase tracking-widest">Confirma</button>
+        </div>
+
+    </div>
+
+    <!-- LOGICA JAVASCRIPT INTEGRADA -->
