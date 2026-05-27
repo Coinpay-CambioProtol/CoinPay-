@@ -23,7 +23,7 @@
             <span class="text-xl">⚙️</span>
             <h2 class="text-sm font-bold tracking-wider text-green-400">CONFIGURAÇÃO DO TERMINAL</h2>
         </div>
-        <p class="text-xs text-gray-400 mb-6">Insira a carteira que receberá os pagamentos automáticos neste dispositivo.</p>
+        <p class="text-xs text-gray-400 mb-6">Insira a carteira que receberá os pagamentos automáticos neste dispositivo (Rede Polygon).</p>
         <div class="mb-6 text-left">
             <label class="text-[10px] uppercase text-gray-500 font-bold block mb-2">Sua Carteira de Recebimento</label>
             <input type="text" id="input-wallet" placeholder="0x..." class="w-full bg-black border border-gray-700 p-3 rounded text-xs text-white focus:outline-none focus:border-green-400 text-center font-mono">
@@ -38,13 +38,12 @@
                 <h1 class="text-sm font-bold tracking-wide">COINPAY <span style="color:var(--neon)">TERMINAL</span></h1>
             </div>
             <select id="moeda" onchange="App.update()" class="bg-black border border-gray-700 text-xs p-1 rounded text-white focus:outline-none">
-                <option value="USDT">USDT</option>
-                <option value="USDC">USDC</option>
-                <option value="BRL">BRL</option>
+                <option value="USDT">USDT (Polygon)</option>
+                <option value="POL">POL / MATIC (Polygon)</option>
             </select>
         </header>
 
-        <div id="visor" class="text-right text-4xl mb-6 text-green-400 font-bold tracking-tight">USDT 0,00</div>
+        <div id="visor" class="text-right text-4xl mb-6 text-green-400 font-bold tracking-tight">$ 0,00</div>
         
         <div class="grid grid-cols-3 gap-2 mb-4">
             <button onclick="App.numpad(1)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">1</button>
@@ -55,7 +54,7 @@
             <button onclick="App.numpad(6)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">6</button>
             <button onclick="App.numpad(7)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">7</button>
             <button onclick="App.numpad(8)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">8</button>
-            <button onclick="App.numpad(9)" class="p-4 bg-gray-900 hover:bg-gray-700 rounded text-xl">9</button>
+            <button onclick="App.numpad(9)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">9</button>
             <button onclick="App.clear()" class="p-4 bg-red-950 text-red-400 hover:bg-red-900 rounded text-xl font-bold">C</button>
             <button onclick="App.numpad(0)" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">0</button>
             <button onclick="App.backspace()" class="p-4 bg-gray-800 hover:bg-gray-700 rounded text-xl">⌫</button>
@@ -66,7 +65,7 @@
 
     <section id="checkout-container" class="w-full max-w-sm glass p-6 hidden text-center">
         <h2 class="text-sm font-bold mb-2 tracking-wider">ESCANEIE PARA PAGAR</h2>
-        <div id="cobranca-valores" class="text-2xl text-green-400 font-bold mb-4">0,00</div>
+        <div id="cobranca-valores" class="text-2xl text-green-400 font-bold mb-4">$ 0,00</div>
         
         <div id="qrcode" class="flex justify-center mb-6"></div>
         
@@ -81,22 +80,24 @@
     <section id="payer-container" class="w-full max-w-sm glass p-6 hidden text-center animate-pulse">
         <h2 class="text-xs tracking-widest text-gray-400 uppercase mb-2">COINPAY GATEWAY</h2>
         <div class="text-sm font-bold mb-4">PROCESSANDO PAGAMENTO</div>
-        <div id="payer-val" class="text-3xl text-green-400 font-bold mb-2">0,00</div>
+        <div id="payer-val" class="text-3xl text-green-400 font-bold mb-2">$ 0,00</div>
         <p class="text-[11px] text-gray-500 font-mono mb-6 break-all" id="payer-dest"></p>
         <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-green-400 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
         <p class="text-xs text-gray-400 mt-4">Confirme a transação na janela flutuante da sua carteira...</p>
     </section>
 
     <script>
-        const CONTRACT_ADDRESS = "0x79ce1969be43f738a6d05c89e2bd73d39b009b1c";
-        const CONTRACT_ABI = [
+        // Endereço oficial do USDT na Polygon Mainnet
+        const USDT_CONTRACT_ADDRESS = "0xc2132d05d31c914a87c6611c10748aeb04b58e8f"; 
+
+        // Interface simplificada para transferência de Tokens ERC-20
+        const ERC20_ABI = [
             {
                 "inputs": [
-                    { "internalType": "address", "name": "sender", "type": "address" },
-                    { "internalType": "address", "name": "recipient", "type": "address" },
-                    { "internalType": "uint256", "name": "amount", "type": "uint256" }
+                    { "internalType": "address", "name": "to", "type": "address" },
+                    { "internalType": "uint256", "name": "value", "type": "uint256" }
                 ],
-                "name": "transferFrom",
+                "name": "transfer",
                 "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
                 "stateMutability": "nonpayable",
                 "type": "function"
@@ -108,28 +109,29 @@
         const App = {
             valor: 0,
             walletDestino: "",
+            moedaSelecionada: "USDT",
             
             init: () => {
                 const urlParams = new URLSearchParams(window.location.search);
                 const val = urlParams.get('v');
-                const m = urlParams.get('m');
-                const dest = urlParams.get('dest'); // Captura a carteira do lojista vinda do QR Code
+                const m = urlParams.get('m') || 'USDT';
+                const dest = urlParams.get('dest');
 
-                // SE TIVER 'DEST' NA URL, SIGNIFICA QUE É O CLIENTE PAGANDO!
+                // Rota executada no smartphone do CLIENTE
                 if (dest && val) {
                     App.walletDestino = dest;
+                    App.moedaSelecionada = m;
                     App.valor = Math.round(parseFloat(val) * 100);
                     
-                    document.getElementById('payer-val').innerText = `${m} ${parseFloat(val).toFixed(2)}`;
+                    document.getElementById('payer-val').innerText = `$ ${parseFloat(val).toFixed(2)} (${m})`;
                     document.getElementById('payer-dest').innerText = `Para: ${dest}`;
                     document.getElementById('payer-container').classList.remove('hidden');
                     
-                    // Executa a cobrança na MetaMask do cliente imediatamente
-                    setTimeout(() => { App.executarPagamentoCliente(val, m); }, 1000);
+                    setTimeout(() => { App.executarPagamentoCliente(val, m); }, 1200);
                     return;
                 }
 
-                // SE NÃO TIVER PARÂMETROS, É O MODO LOJISTA OPERANDO O TERMINAL
+                // Rota executada no terminal do LOJISTA
                 App.walletDestino = localStorage.getItem("coinpay_merchant_wallet") || "";
                 if (!App.walletDestino) {
                     document.getElementById('config-container').classList.remove('hidden');
@@ -160,32 +162,27 @@
             numpad: (n) => { App.valor = (App.valor * 10) + n; App.update(); },
             clear: () => { App.valor = 0; App.update(); },
             backspace: () => { App.valor = Math.floor(App.valor / 10); App.update(); },
+            
             update: () => { 
-                const moeda = document.getElementById('moeda').value;
-                document.getElementById('visor').innerText = `${moeda} ${(App.valor/100).toFixed(2)}`; 
+                const moedaElement = document.getElementById('moeda');
+                if (moedaElement) App.moedaSelecionada = moedaElement.value;
+                document.getElementById('visor').innerText = `$ ${(App.valor/100).toFixed(2)}`; 
             },
 
-            // GERA O LINK DEEP LINK DA METAMASK COM TODAS AS INFORMAÇÕES EMBUTIDAS
             gerarLinkPagamento: () => {
                 const valorFinal = (App.valor / 100).toString();
-                const moeda = document.getElementById('moeda').value;
-                // Remove o http:// ou https:// para criar a rota interna correta da MetaMask
                 const urlLimpa = window.location.href.split('?')[0].replace(/^https?:\/\//, '');
-                
-                // Formato oficial de Deep Link que força a abertura direta no app da MetaMask
-                return `https://metamask.app.link/dapp/${urlLimpa}?v=${valorFinal}&m=${moeda}&dest=${App.walletDestino}`;
+                return `https://metamask.app.link/dapp/${urlLimpa}?v=${valorFinal}&m=${App.moedaSelecionada}&dest=${App.walletDestino}`;
             },
 
             gerarCobranca: () => {
                 if(App.valor === 0) return alert("Digite um valor.");
                 
-                const moeda = document.getElementById('moeda').value;
-                document.getElementById('cobranca-valores').innerText = `${moeda} ${(App.valor/100).toFixed(2)}`;
+                document.getElementById('cobranca-valores').innerText = `$ ${(App.valor/100).toFixed(2)} (${App.moedaSelecionada})`;
 
                 const linkMetaMaskDireto = App.gerarLinkPagamento();
                 document.getElementById('qrcode').innerHTML = "";
 
-                // Transforma o link direto da MetaMask em imagem de QR Code
                 qrcodeInstance = new QRCode(document.getElementById("qrcode"), {
                     text: linkMetaMaskDireto,
                     width: 210,
@@ -201,8 +198,7 @@
 
             compartilhar: (plataforma) => {
                 const link = encodeURIComponent(App.gerarLinkPagamento());
-                const moeda = document.getElementById('moeda').value;
-                const texto = encodeURIComponent(`Olá! Siga o link para efetuar o pagamento de ${moeda} ${(App.valor/100).toFixed(2)} direto pela sua MetaMask:\n\n`);
+                const texto = encodeURIComponent(`Olá! Utilize o link abaixo para realizar o pagamento de $ ${(App.valor/100).toFixed(2)} em ${App.moedaSelecionada} na rede Polygon:\n\n`);
                 
                 let url = plataforma === 'whatsapp' 
                     ? `https://api.whatsapp.com/send?text=${texto}${link}`
@@ -221,38 +217,68 @@
                 App.update();
             },
 
-            // ESTA FUNÇÃO RODA NO APARELHO DO CLIENTE ASSIM QUE ELE ENTRA NO LINK/QR CODE
             executarPagamentoCliente: async (valor, moeda) => {
                 if (!window.ethereum) {
-                    alert("Por favor, abra este link de dentro do navegador da sua Carteira Web3 (MetaMask).");
+                    alert("Abra este link dentro do navegador integrado da sua Carteira Web3 (MetaMask/Rabby).");
                     return;
                 }
 
                 try {
-                    const contas = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    const carteiraCliente = contas[0];
+                    // Garante que a carteira do cliente está apontada para a rede Polygon Mainnet (ID 137)
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: '0x89' }], 
+                        });
+                    } catch (switchError) {
+                        if (switchError.code === 4902) {
+                            await window.ethereum.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [{
+                                    chainId: '0x89',
+                                    chainName: 'Polygon Mainnet',
+                                    nativeCurrency: { name: 'POL', symbol: 'POL', decimals: 18 },
+                                    rpcUrls: ['https://polygon-rpc.com/'],
+                                    blockExplorerUrls: ['https://polygonscan.com/']
+                                }]
+                            });
+                        } else {
+                            throw switchError;
+                        }
+                    }
 
+                    const contas = await window.ethereum.request({ method: 'eth_requestAccounts' });
                     const provider = new ethers.BrowserProvider(window.ethereum);
                     const signer = await provider.getSigner();
-                    const contrato = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
                     
-                    const tokenDecimals = 6; // Configurado para 6 decimais (Padrão USDT/USDC)
-                    const valorFormatado = ethers.parseUnits(valor, tokenDecimals);
+                    let tx;
 
-                    // Executa a ordem enviando os fundos diretamente do cliente para a carteira salva do lojista
-                    const tx = await contrato.transferFrom(carteiraCliente, App.walletDestino, valorFormatado);
+                    // Verifica se o pagamento é na Moeda Nativa (POL/MATIC) ou via Smart Contract (USDT)
+                    if (moeda === "POL" || moeda === "MATIC") {
+                        const valorFormatado = ethers.parseEther(valor);
+                        tx = await signer.sendTransaction({
+                            to: App.walletDestino,
+                            value: valorFormatado
+                        });
+                    } else {
+                        const contrato = new ethers.Contract(USDT_CONTRACT_ADDRESS, ERC20_ABI, signer);
+                        const tokenDecimals = 6; 
+                        const valorFormatado = ethers.parseUnits(valor, tokenDecimals);
+                        tx = await contrato.transfer(App.walletDestino, valorFormatado);
+                    }
                     
-                    alert(`Transação transmitida! Aguardando confirmação...\nHash: ${tx.hash}`);
+                    alert(`Transação enviada para a rede!\nHash: ${tx.hash}`);
                     await tx.wait();
                     
+                    document.getElementById('payer-container').classList.remove('animate-pulse');
                     document.getElementById('payer-container').innerHTML = `
                         <span class="text-4xl text-green-400">✅</span>
                         <h2 class="text-lg font-bold mt-2 text-green-400">PAGAMENTO CONCLUÍDO</h2>
-                        <p class="text-xs text-gray-400 mt-1">O saldo já foi enviado para o lojista.</p>
+                        <p class="text-xs text-gray-400 mt-1">O saldo em ${moeda} foi liquidado na carteira do lojista.</p>
                     `;
                 } catch (error) {
                     console.error(error);
-                    alert("A transação foi recusada ou falhou: " + (error.reason || error.message));
+                    alert("Erro no pagamento: " + (error.reason || error.message));
                 }
             }
         };
